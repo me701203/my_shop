@@ -1,0 +1,110 @@
+{% load currency_filters %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>فاکتور سفارش</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+        font-family: Tahoma, Arial, sans-serif;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .container {
+        background: #ffffff;
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 25px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+    h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .info {
+        margin: 10px 0;
+        font-size: 15px;
+        color: #444;
+        line-height: 1.7;
+    }
+
+    .total {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #000;
+    }
+
+    .footer {
+        margin-top: 25px;
+        font-size: 12px;
+        color: #888;
+        text-align: center;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>فاکتور سفارش شماره {{ order.id }}</h1>
+
+    <p class="info">
+        <strong>{{ ORDER_LABELS.customer_label }}:</strong>
+        {{ order.first_name }} {{ order.last_name }}
+    </p>
+
+    <p class="info"><strong>ایمیل:</strong> {{ order.email }}</p>
+
+    <p class="info">
+        <strong>{{ ORDER_LABELS.date_label }}:</strong>
+        {{ order.created }}
+    </p>
+
+    <p class="total">
+        {{ ORDER_LABELS.subtotal_label }}:
+        {{ order.get_total_cost|currency }}
+    </p>
+    
+    {% if order.coupon %}
+    <p class="info">
+        <strong>{{ ORDER_LABELS.discount_title }}:</strong>
+        {{ order.coupon.code }}
+    </p>
+    
+    <p class="info">
+        <strong>{{ ORDER_LABELS.discount_label }}:</strong>
+        - {{ order.discount|currency }}
+    </p>
+    
+    <p class="total">
+        <strong>{{ ORDER_LABELS.final_amount_title }}:</strong>
+        {{ order.get_total_cost|add:"-"|add:order.discount|currency }}
+    </p>
+    {% endif %}
+    
+    
+
+    <p class="info">
+        از خرید شما سپاسگزاریم. فایل PDF فاکتور این سفارش در پیوست ایمیل قرار دارد.
+    </p>
+
+    <div class="footer">
+        این پیام به صورت خودکار ارسال شده است. لطفاً به آن پاسخ ندهید.
+    </div>
+
+</div>
+
+</body>
+</html>

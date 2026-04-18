@@ -1,0 +1,54 @@
+{% load static %}
+{% load currency_filters %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @font-face {
+            font-family: 'Vazir';
+            src: url("file:///{{ font_path }}") format("truetype");
+        }
+        * { font-family: 'Vazir' !important; direction: rtl; text-align: right; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table th, table td { border: 1px solid #333; padding: 6px; }
+    </style>
+</head>
+<body>
+
+    <h1>{{ title }}</h1>
+
+    <p><strong>{{ ORDER_LABELS.customer_label }}:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+    <p><strong>{{ ORDER_LABELS.order_label }}:</strong> {{ order.id }}</p>
+    <p><strong>{{ ORDER_LABELS.date_label }}:</strong> {{ order.created|date:"Y-m-d H:i" }}</p>
+
+    <h2>{{ ORDER_LABELS.products_title }}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>{{ ORDER_LABELS.product_name }}</th>
+                <th>{{ ORDER_LABELS.quantity }}</th>
+                <th>{{ ORDER_LABELS.price }}</th>
+                <th>{{ ORDER_LABELS.sum }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price|currency }}</td>
+                <td>{{ item.get_cost|currency }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>
+        {{ ORDER_LABELS.total_amount }}: {{ order.get_total_cost|currency }}
+    </h3>
+
+</body>
+</html>

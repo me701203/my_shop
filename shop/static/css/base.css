@@ -1,0 +1,420 @@
+/* -------------------------------------------------------
+   FONTS
+------------------------------------------------------- */
+@font-face {
+    font-family: 'Ubuntu';
+    src: url('../fonts/Ubuntu-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    src: url('../fonts/Ubuntu-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* -------------------------------------------------------
+   BASICS
+------------------------------------------------------- */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: helvetica, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: normal;
+}
+
+a {
+    text-decoration: none;
+    color: #5993bb;
+}
+
+a:hover {
+    color: #77b6e2;
+}
+
+a.button,
+input[type="submit"] {
+    color: #fff;
+    background: #5993bb;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 14px;
+    border: 0;
+}
+
+a.button.light {
+    color: #666;
+    background: #ededed;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
+/* -------------------------------------------------------
+   TABLES
+------------------------------------------------------- */
+table {
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+table th,
+table td {
+    text-align: left;
+    font-size: 14px;
+    padding: 10px;
+    margin: 0;
+}
+
+tbody tr:nth-child(odd) {
+    background: #efefef;
+}
+
+tbody tr.subtotal {
+    background: #ccc;
+}
+
+thead th,
+tbody tr.total {
+    background: #5993bb;
+    color: #fff;
+    font-weight: bold;
+}
+
+table.cart {
+    margin-bottom: 40px;
+}
+
+table.cart img {
+    width: 180px;
+}
+
+tbody td.num {
+    text-align: right;
+}
+
+/* -------------------------------------------------------
+   FORMS
+------------------------------------------------------- */
+form p label,
+form p input {
+    float: left;
+    clear: both;
+}
+
+form p label {
+    font-size: 14px;
+    padding-bottom: 4px;
+}
+
+form p input {
+    width: 300px;
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border: 0;
+    background: #efefef;
+    color: #666;
+    border-radius: 4px;
+}
+
+ul.errorlist {
+    float: left;
+    color: #ff0000;
+    clear: both;
+    font-size: 13px;
+    margin: 0 0 0 10px;
+    padding: 10px 0;
+}
+
+/* Braintree hosted fields */
+form div.field {
+    font-size: 13px;
+    color: #666;
+    width: 300px;
+    height: 22px;
+    margin-bottom: 10px;
+    padding: 6px 12px;
+    border: 0;
+    background: #efefef;
+    border-radius: 4px;
+}
+
+/* -------------------------------------------------------
+   HEADER
+------------------------------------------------------- */
+#header {
+    padding: 10px 100px;
+    font-size: 18px;
+    overflow: auto;
+}
+
+#header .logo {
+    font-family: 'Ubuntu', sans-serif;
+    float: left;
+    color: #333;
+    font-size: 22px;
+    margin-right: 10%;
+}
+
+#subheader {
+    background: #ececec;
+    color: #444;
+    padding: 15px 100px;
+    overflow: auto;
+}
+
+#subheader .cart {
+    float: right;
+    padding-top: 4px;
+}
+
+/* -------------------------------------------------------
+   CONTENT LAYOUT (Modern)
+------------------------------------------------------- */
+#content {
+    padding: 0 100px;
+    display: flex;
+    /* replaces old float/negative-margin hack */
+}
+
+#sidebar {
+    width: 220px;
+    padding: 30px 20px 0 0;
+    flex-shrink: 0;
+}
+
+#sidebar ul {
+    margin: 0;
+    padding: 0;
+}
+
+#sidebar ul li {
+    list-style: none;
+    padding: 10px 14px;
+}
+
+#sidebar ul li a {
+    display: block;
+}
+
+#sidebar ul li.selected {
+    background: #5993bb;
+    border-radius: 4px;
+}
+
+#sidebar ul li.selected a {
+    color: #fff;
+}
+
+#main {
+    flex-grow: 1;
+    padding-top: 20px;
+    /* restores spacing under “Products” */
+}
+
+/* -------------------------------------------------------
+   PRODUCT LIST GRID (Modern)
+------------------------------------------------------- */
+.product-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 30px;
+    margin-top: 20px;
+}
+
+.product-list .item {
+    text-align: center;
+    line-height: 1.2;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-list .item img {
+    width: 100%;
+    margin-bottom: 10px;
+    object-fit: cover;
+}
+
+/* product title clamp */
+.product-list .item a:nth-of-type(2) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+    /* non-standard but makes Cursor happier */
+    -webkit-line-clamp: 2;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: break-word;
+
+    min-height: 2.4em;
+}
+
+/* -------------------------------------------------------
+   RESPONSIVE GRID
+------------------------------------------------------- */
+@media (max-width: 1200px) {
+    .product-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .product-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .product-list {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+/* -------------------------------------------------------
+   PRODUCT DETAIL PAGE
+------------------------------------------------------- */
+.product-detail {
+    text-align: justify;
+}
+
+.product-detail .price {
+    color: #333;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.product-detail img {
+    width: 40%;
+    float: left;
+    padding: 0 20px 20px 0;
+}
+
+.product-detail h1 {
+    margin-bottom: 0;
+}
+
+.product-detail h2 {
+    margin-top: 10px;
+}
+
+/* -------------------------------------------------------
+   ORDER INFO
+------------------------------------------------------- */
+.order-form {
+    float: left;
+}
+
+.order-info {
+    float: right;
+    width: 300px;
+    background: #efefef;
+    padding: 10px 20px;
+    color: #333;
+    border-bottom: 4px solid #5993bb;
+}
+
+.order-info h3 {
+    color: #5993bb;
+}
+
+.order-info ul li {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+}
+
+.order-info p {
+    font-weight: bold;
+    float: right;
+}
+
+.order-info span {
+    float: right;
+}
+
+.neg {
+    color: #dc1616;
+}
+
+/* -------------------------------------------------------
+   LANGUAGE SWITCHER
+------------------------------------------------------- */
+.languages {
+    float: right;
+    padding-top: 4px;
+    font-size: 14px;
+}
+
+.languages ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    float: left;
+}
+
+.languages ul li {
+    float: left;
+    margin-left: 10px;
+    font-size: 14px;
+}
+
+.languages p {
+    float: left;
+    margin: 0;
+}
+
+/* -------------------------------------------------------
+   RECOMMENDATIONS
+------------------------------------------------------- */
+.recommendations {
+    clear: both;
+}
+
+.recommendations div {
+    float: left;
+}
+
+.recommendations img {
+    width: 200px;
+}
+
+.recommendations p {
+    clear: both;
+}
+
+.recommendations.cart {
+    width: 60%;
+    float: left;
+    overflow: auto;
+}
+
+.recommendations.cart h3 {
+    margin-top: 0;
+}
+
+.recommendations.cart .item {
+    margin-right: 10px;
+}
+
+.recommendations.cart img {
+    width: 120px;
+}

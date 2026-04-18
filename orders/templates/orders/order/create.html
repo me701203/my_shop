@@ -1,0 +1,57 @@
+{% extends "shop/base.html" %}
+{% load currency_filters %}
+
+{% block title %}
+  Checkout
+{% endblock %}
+
+{% block content %}
+  <h1>Checkout</h1>
+  <div class="order-info">
+    <h3>Your order</h3>
+    <ul>
+      {% for item in cart %}
+        <li>
+          {{ item.quantity }}x {{ item.product.name }}
+          <span>{{ item.total_price|currency }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <p><strong>{{ ORDER_LABELS.total_amount }}:</strong> {{ cart.get_total_price|currency }}</p>
+
+    {% if cart.coupon %}
+    <div style="margin-top:15px;padding:12px;background:#f7f7f7;border-radius:6px">
+      <p><strong>{{ ORDER_LABELS.coupon_label }}:</strong> {{ cart.coupon.code }}</p>
+
+      <p>
+        <strong>{{ ORDER_LABELS.discount_label }}:</strong>
+        - {{ cart.get_discount|currency }}
+      </p>
+
+      <p style="font-size:18px;font-weight:bold">
+        <strong>{{ ORDER_LABELS.final_amount_label }}:</strong>
+        {{ cart.get_total_price_after_discount|currency }}
+      </p>
+    </div>
+  {% endif %}
+
+  </div>
+
+  <form method="post" class="order-form">
+    {{ form.as_p }}
+  
+    <label>Payment Method</label>
+    <select name="gateway">
+      {% for key, gateway in gateways.items %}
+        <option value="{{ key }}">{{ gateway.NAME }}</option>
+      {% endfor %}
+    </select>
+
+
+  
+    <p><input type="submit" value="Place order"></p>
+    {% csrf_token %}
+  </form>
+  
+{% endblock %}
