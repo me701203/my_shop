@@ -1,48 +1,61 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from decimal import Decimal
+from django.core.validators import MinValueValidator
 
 
 class Order(models.Model):
     class PaymentStatus(models.TextChoices):
-        PENDING = "pending", settings.ORDER_LABELS.get("payment_pending", "Pending")
-        SUCCESS = "success", settings.ORDER_LABELS.get("payment_success", "Success")
-        FAILED = "failed", settings.ORDER_LABELS.get("payment_failed", "Failed")
-        CANCELLED = "cancelled", settings.ORDER_LABELS.get(
-            "payment_cancelled", "Cancelled"
-        )
+        PENDING = "pending", _("Pending")
+        SUCCESS = "success", _("Success")
+        FAILED = "failed", _("Failed")
+        CANCELLED = "cancelled", _("Cancelled")
 
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    email = models.EmailField()
+    first_name = models.CharField(_("first name"), max_length=50)
+    last_name = models.CharField(_("last name"), max_length=50)
+    email = models.EmailField(_("email"))
 
-    address = models.CharField(max_length=250)
-    postal_code = models.CharField(max_length=20)
-    city = models.CharField(max_length=100)
+    address = models.CharField(_("address"), max_length=250)
+    postal_code = models.CharField(_("postal code"), max_length=20)
+    city = models.CharField(_("city"), max_length=100)
 
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(_("created"), auto_now_add=True)
+    updated = models.DateTimeField(_("updated"), auto_now=True)
 
-    paid = models.BooleanField(default=False)
-    paid_at = models.DateTimeField(blank=True, null=True)
+    paid = models.BooleanField(_("paid"), default=False)
+    paid_at = models.DateTimeField(_("paid at"), blank=True, null=True)
 
-    payment_method = models.CharField(max_length=50, blank=True, null=True)
-    payment_status = models.CharField(
-        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING
+    payment_method = models.CharField(
+        _("payment method"), max_length=50, blank=True, null=True
     )
 
-    payment_authority = models.CharField(max_length=100, blank=True, null=True)
-    payment_ref_id = models.CharField(max_length=100, blank=True, null=True)
+    payment_status = models.CharField(
+        _("payment status"),
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.PENDING,
+    )
+
+    payment_authority = models.CharField(
+        _("payment authority"), max_length=100, blank=True, null=True
+    )
+    payment_ref_id = models.CharField(
+        _("payment reference ID"), max_length=100, blank=True, null=True
+    )
 
     class Meta:
         ordering = ["-created"]
+        verbose_name = _("order")
+        verbose_name_plural = _("orders")
         indexes = [
             models.Index(fields=["created"]),
         ]
 
     def __str__(self):
-        return f"Order {self.id}"
+        return _("Order %(id)s") % {"id": self.id}
 
     def get_total_cost(self):
         total = sum(item.get_cost() for item in self.items.all())
@@ -58,28 +71,48 @@ class Order(models.Model):
 
         return format_html('<a href="{}">{}</a>', url, count)
 
-    payment_log_count.short_description = "Logs"
+    payment_log_count.short_description = _("Logs")
     payment_log_count.admin_order_field = "payment_logs"
 
     coupon = models.ForeignKey(
         "coupon.Coupon",
+        verbose_name=_("coupon"),
         related_name="orders",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
     )
 
-    discount = models.BigIntegerField(default=0)
+    discount = models.DecimalField(
+        _("discount"),
+        max_digits=20,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        Order,
+        verbose_name=_("order"),
+        related_name="items",
+        on_delete=models.CASCADE,
+    )
     product = models.ForeignKey(
-        "shop.Product", related_name="order_items", on_delete=models.CASCADE
+        "shop.Product",
+        verbose_name=_("product"),
+        related_name="order_items",
+        on_delete=models.CASCADE,
     )
 
-    price = models.BigIntegerField()
-    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(
+        _("price"),
+        max_digits=20,  # up to 18 digits integer + 2 decimals
+        decimal_places=2,
+    )
+
+    quantity = models.PositiveIntegerField(_("quantity"), default=1)
 
     def __str__(self):
         return str(self.id)

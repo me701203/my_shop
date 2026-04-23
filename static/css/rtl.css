@@ -1,0 +1,94 @@
+/* RTL: enabled only when <html dir="rtl"> */
+
+/* -----------------------
+   Base RTL document flow
+-------------------------*/
+[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
+}
+
+[dir="rtl"] * {
+    unicode-bidi: plaintext;
+}
+
+/* -----------------------
+   Header layout
+-------------------------*/
+[dir="rtl"] #header .logo {
+    float: right;
+}
+
+[dir="rtl"] #header .language-switcher {
+    float: left;
+}
+
+/* -----------------------
+   Subheader / Cart
+-------------------------*/
+[dir="rtl"] #subheader .cart {
+    float: left !important;
+    text-align: left;
+}
+
+/* -----------------------
+   Categories sidebar
+-------------------------*/
+[dir="rtl"] #sidebar ul li {
+    text-align: right;
+}
+
+/* -----------------------
+   Product list / items
+-------------------------*/
+[dir="rtl"] .product-list,
+[dir="rtl"] .product-item,
+[dir="rtl"] .category-section {
+    text-align: right;
+}
+
+/* -----------------------
+   Floats helpers
+-------------------------*/
+[dir="rtl"] .left {
+    float: right !important;
+}
+
+[dir="rtl"] .right {
+    float: left !important;
+}
+
+/* -----------------------
+   Titles
+-------------------------*/
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+    text-align: right !important;
+}
+
+/* -----------------------
+   Forms (inputs/select)
+-------------------------*/
+[dir="rtl"] input,
+[dir="rtl"] select {
+    text-align: right;
+}
+
+/* -----------------------
+   Prices
+-------------------------*/
+[dir="rtl"] .price {
+    display: block;
+    text-align: left;
+    /* or right — your choice */
+}
+
+/* -----------------------
+   Cart table
+-------------------------*/
+[dir="rtl"] table.cart th,
+[dir="rtl"] table.cart td {
+    text-align: right;
+}

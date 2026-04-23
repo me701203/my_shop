@@ -1,32 +1,60 @@
 {% load static %}
+{% load i18n %}
 {% load currency_filters %}
+{% load digits %}
 <!DOCTYPE html>
-<html>
+{% get_current_language as CURRENT_LANG %}
+<html lang="{{ CURRENT_LANG }}" {% if CURRENT_LANG == 'fa' %}dir="rtl"{% endif %}>
   <head>
     <meta charset="utf-8" />
-    <title>{% block title %}My shop{% endblock %}</title>
-    <link href="{% static "css/base.css" %}" rel="stylesheet">
+    <title>{% block title %}{% trans "My shop" %}{% endblock %}</title>
+  
+    <link href="{% static 'css/base.css' %}" rel="stylesheet">
+  
+    {% if CURRENT_LANG == "fa" %}
+      <link href="{% static 'css/rtl.css' %}" rel="stylesheet">
+    {% endif %}
+  
   </head>
+  
   <body>
     <div id="header">
-      <a href="/" class="logo">My shop</a>
+
+      <!-- Logo -->
+      <a href="{% url 'shop:product_list' %}" class="logo">
+        {% trans "My shop" %}
+      </a>
+
+      <!-- Language Switcher -->
+      <div class="language-switcher">
+        <form action="{% url 'set_language' %}" method="post">
+          {% csrf_token %}
+          <input name="next" type="hidden" value="{{ request.path }}">
+          
+          <select name="language" onchange="this.form.submit()">
+            <option value="en" {% if CURRENT_LANG == "en" %}selected{% endif %}>{% trans "English" %}</option>
+            <option value="fa" {% if CURRENT_LANG == "fa" %}selected{% endif %}>{% trans "Persian" %}</option>
+          </select>
+        </form>        
+      </div>
     </div>
+
     <div id="subheader">
       <div class="cart">
         {% with total_items=cart|length %}
           {% if total_items > 0 %}
             <a href="{% url 'cart:cart_detail' %}">
-              {{ SHOP_LABELS.your_cart }}: {{ cart.get_total_price|currency }}
+              {% trans "Your cart" %}: {{ cart.get_total_price|currency }}
             </a>
           {% elif not order %}
-            Your cart is empty.
+            {% trans "Your cart is empty." %}
           {% endif %}
         {% endwith %}
       </div>
     </div>
+
     <div id="content">
-      {% block content %}
-      {% endblock %}
+      {% block content %}{% endblock %}
     </div>
   </body>
 </html>

@@ -9,6 +9,7 @@ from .models import OrderItem, Order
 from .tasks import order_created
 from .utils import render_invoice_pdf
 from .tasks import send_invoice_email_task
+from shop.recommender import Recommender
 
 
 def order_create(request):
@@ -44,6 +45,10 @@ def order_create(request):
                     price=item["price"],
                     quantity=item["quantity"],
                 )
+
+            # update product recommendations
+            recommender = Recommender()
+            recommender.products_bought([item["product"] for item in cart])
 
             # --- Increase coupon usage ---
             if cart.coupon:

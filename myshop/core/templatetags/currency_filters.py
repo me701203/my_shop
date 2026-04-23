@@ -1,5 +1,6 @@
 from django import template
 from django.conf import settings
+from django.utils import translation
 
 register = template.Library()
 
@@ -13,22 +14,26 @@ def to_persian_digits(value: str) -> str:
 @register.filter
 def currency(value):
     """
-    Format numbers like:
-      2500 → ۲٬۵۰۰ تومان
+    Language-aware currency formatting
+
+    EN → 2,500 Toman
+    FA → ۲٬۵۰۰ تومان
     """
     try:
-        # Convert to float or decimal
         amount = float(value)
     except (TypeError, ValueError):
         return value
 
-    # Format with comma separators
-    formatted = f"{amount:,.0f}"  # remove decimals
+    formatted = f"{amount:,.0f}"
 
-    # Convert to Persian digits
-    formatted = to_persian_digits(formatted)
+    lang = translation.get_language() or "en"
 
-    # Add currency symbol from settings
-    symbol = getattr(settings, "CURRENCY_SYMBOL", "")
+    # convert digits for Persian
+    if lang.startswith("fa"):
+        formatted = to_persian_digits(formatted)
+
+    # get symbol from settings
+    symbols = getattr(settings, "CURRENCY_SYMBOLS", {})
+    symbol = symbols.get(lang[:2], symbols.get("en", ""))
 
     return f"{formatted} {symbol}"

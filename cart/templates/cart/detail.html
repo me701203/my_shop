@@ -1,22 +1,24 @@
 {% extends "shop/base.html" %}
 {% load static %}
+{% load i18n %}
 {% load currency_filters %}
+{% load digits %}
 
 {% block title %}
-  Your shopping cart
+  {% trans "Your shopping cart" %}
 {% endblock %}
 
 {% block content %}
-  <h1>Your shopping cart</h1>
+  <h1>{% trans "Your shopping cart" %}</h1>
   <table class="cart">
     <thead>
       <tr>
-        <th>Image</th>
-        <th>Product</th>
-        <th>Quantity</th>
-        <th>Remove</th>
-        <th>Unit price</th>
-        <th>Price</th>
+        <th>{% trans "Image" %}</th>
+        <th>{% trans "Product" %}</th>
+        <th>{% trans "Quantity" %}</th>
+        <th>{% trans "Remove" %}</th>
+        <th>{% trans "Unit price" %}</th>
+        <th>{% trans "Price" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -34,13 +36,13 @@
               <form action="{% url "cart:cart_add" product.id %}" method="post">
                 {{ item.update_quantity_form.quantity }}
                 {{ item.update_quantity_form.override }}
-                <input type="submit" value="Update">
+                <input type="submit" value="{% trans 'Update' %}">
                 {% csrf_token %}
               </form>
             </td>
             <td>
               <form action="{% url "cart:cart_remove" product.id %}" method="post">
-                <input type="submit" value="Remove">
+                <input type="submit" value="{% trans 'Remove' %}">
                 {% csrf_token %}
               </form>
             </td>
@@ -50,7 +52,7 @@
         {% endwith %}
       {% endfor %}
       <tr class="total">
-        <td>Total</td>
+        <td>{% trans "Total" %}</td>
         <td colspan="4"></td>
         <td class="num">{{ cart.get_total_price|currency }}</td>
       </tr>
@@ -59,19 +61,22 @@
   {# Coupon Apply Form #}
   <form action="{% url 'coupon:apply' %}" method="post" style="margin-top: 20px;">
     {% csrf_token %}
-    <input type="text" name="code" placeholder="Have a coupon?" style="padding: 6px;">
-    <button type="submit">Apply</button>
+    <input type="text" name="code" placeholder="{% trans 'Have a coupon?' %}" style="padding: 6px;">
+    <button type="submit">{% trans "Apply" %}</button>
   </form>
   {% if cart.coupon %}
     <div style="margin-top: 20px; padding: 10px; background: #f7f7f7; border-radius: 6px;">
-        <p>Coupon applied: <strong>{{ cart.coupon.code }}</strong></p>
-        <p>Discount: <strong>{{ cart.get_discount|currency }}</strong></p>
-        <p>Total after discount: <strong>{{ cart.get_total_price_after_discount|currency }}</strong></p>
+        <p>{% trans "Coupon applied:" %}<strong>{{ cart.coupon.code }}</strong></p>
+        <p>{% trans "Discount:" %}<strong>{{ cart.get_discount|currency }}</strong></p>
+        <p>{% trans "Total after discount:" %}<strong>{{ cart.get_total_price_after_discount|currency }}</strong></p>
     </div>
   {% endif %}
   <p class="text-right">
-    <a href="{% url "shop:product_list" %}" class="button
-    light">Continue shopping</a>
-    <a href="{% url "orders:order_create" %}" class="button">Checkout</a>
+    <a href="{% url "shop:product_list" %}" class="button light">
+      {% trans "Continue shopping" %}
+    </a>  
+  <a href="{% url "orders:order_create" %}" class="button">
+    {% trans "Checkout" %}
+  </a>
   </p>
 {% endblock %}

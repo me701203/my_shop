@@ -1,0 +1,185 @@
+{% extends "admin/base.html" %}
+
+{% load i18n static %}
+
+{% block title %}
+
+{{ block.super }}
+
+{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<style>
+
+/* language switch */
+
+.lang-switch {
+
+display: inline-flex;
+
+border: 1px solid #ccc;
+
+border-radius: 20px;
+
+overflow: hidden;
+
+margin-left: 12px;
+
+}
+
+.lang-switch button {
+
+padding: 2px 10px;
+
+font-size: 12px;
+
+border: none;
+
+background: transparent;
+
+cursor: pointer;
+
+color: #fff;
+
+}
+
+.lang-switch button.active {
+
+background: #4fa3d1;
+
+font-weight: bold;
+
+}
+
+.lang-switch button:hover {
+
+background: #3c4a56;
+
+}
+
+/* digit switch */
+
+.digits-btn {
+
+padding: 2px 8px;
+
+font-size: 12px;
+
+border: 1px solid #ccc;
+
+background: transparent;
+
+color: #fff;
+
+cursor: pointer;
+
+border-radius: 12px;
+
+margin-left: 4px;
+
+}
+
+.digits-btn.active {
+
+background: #4fa3d1;
+
+font-weight: bold;
+
+}
+
+/* RTL support */
+
+{% get_current_language as LANGUAGE_CODE %}
+
+{% if LANGUAGE_CODE == 'fa' %}
+
+html, body, #header {
+
+direction: rtl;
+
+}
+
+#user-tools {
+
+float: left;
+
+}
+
+{% endif %}
+
+</style>
+
+{% endblock %}
+
+{% block branding %}
+
+<h1 id="site-name">
+
+<a href="{% url 'admin:index' %}">My Shop Admin</a>
+
+</h1>
+
+{% endblock %}
+
+{% block userlinks %}
+
+{{ block.super }}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+<!-- language switch -->
+
+<form action="{% url 'set_language' %}" method="post" style="display:inline;">
+
+{% csrf_token %}
+
+<input name="next" type="hidden" value="{{ request.path }}">
+
+<span class="lang-switch">
+
+<button type="submit"
+
+name="language"
+
+value="fa"
+
+class="{% if LANGUAGE_CODE == 'fa' %}active{% endif %}">
+
+FA
+
+</button>
+
+<button type="submit"
+
+name="language"
+
+value="en"
+
+class="{% if LANGUAGE_CODE == 'en' %}active{% endif %}">
+
+EN
+
+</button>
+
+</span>
+
+</form>
+
+
+{% endblock %}
+
+{% block breadcrumbs %}
+
+{{ block.super }}
+
+{% endblock %}
+
+{% block content %}
+
+{{ block.super }}
+
+{% endblock %}

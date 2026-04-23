@@ -1,69 +1,32 @@
 {% extends "shop/base.html" %}
 {% load currency_filters %}
+{% load digits %}
+{% load i18n %}
 
 {% block title %}
     {% if status == "success" %}
-        {{ ORDER_LABELS.payment_success_title }}
+        {% trans "Payment successful" %}
     {% elif status == "failure" %}
-        {{ ORDER_LABELS.payment_failed_title }}
+        {% trans "Payment failed" %}
     {% elif status == "cancelled" %}
-        {{ ORDER_LABELS.payment_cancelled_title }}
+        {% trans "Payment cancelled" %}
     {% else %}
-        وضعیت پرداخت
+        {% trans "Payment status" %}
     {% endif %}
 {% endblock %}
 
 {% block content %}
 
 <style>
-    .payment-container {
-        max-width: 600px;
-        margin: 60px auto;
-        padding: 25px;
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        text-align: center;
-    }
-
-    .payment-title {
-        font-size: 26px;
-        margin-bottom: 20px;
-        font-weight: bold;
-    }
-
-    .payment-box {
-        background: #f7f7f7;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: left;
-        margin: 25px 0;
-    }
-
-    .payment-field {
-        margin: 10px 0;
-        font-size: 16px;
-    }
-
-    .payment-buttons a {
-        display: inline-block;
-        margin: 10px 8px;
-        padding: 10px 20px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 15px;
-    }
-
-    .btn-primary {
-        background: #3498db;
-        color: white;
-    }
-
-    .btn-secondary {
-        border: 1px solid #aaa;
-        color: #333;
-        background: #fff;
-    }
+    .payment-container { max-width: 600px; margin: 60px auto; padding: 25px; background: #fff;
+        border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; }
+    .payment-title { font-size: 26px; margin-bottom: 20px; font-weight: bold; }
+    .payment-box { background: #f7f7f7; padding: 20px; border-radius: 10px; text-align: left; margin: 25px 0; }
+    .payment-field { margin: 10px 0; font-size: 16px; }
+    .payment-buttons a { display: inline-block; margin: 10px 8px; padding: 10px 20px; border-radius: 6px;
+        text-decoration: none; font-size: 15px; }
+    .btn-primary { background: #3498db; color: white; }
+    .btn-secondary { border: 1px solid #aaa; color: #333; background: #fff; }
 </style>
 
 <div class="payment-container">
@@ -71,82 +34,86 @@
     {% if status == "success" %}
 
         <div class="payment-title" style="color: #27ae60;">
-            {{ ORDER_LABELS.payment_success_title }}
+            {% trans "Payment successful" %}
         </div>
 
         <div class="payment-box">
-            <div class="payment-field"><strong>{{ ORDER_LABELS.order_label }}:</strong> {{ order.id }}</div>
+
+            <div class="payment-field"><strong>{% trans "Order ID" %}:</strong> {{ order.id|smart_digits }}</div>
 
             {% if order.coupon %}
-                <div class="payment-field"><strong>{{ ORDER_LABELS.coupon_label }}:</strong> {{ order.coupon.code }}</div>
-                <div class="payment-field"><strong>{{ ORDER_LABELS.discount_label }}:</strong> {{ order.discount|currency }}</div>
+                <div class="payment-field"><strong>{% trans "Coupon" %}:</strong> {{ order.coupon.code }}</div>
+                <div class="payment-field"><strong>{% trans "Discount" %}:</strong> {{ order.discount|currency }}</div>
             {% endif %}
 
-            <div class="payment-field"><strong>{{ ORDER_LABELS.total_amount }}:</strong> {{ order.get_total_cost|currency }}</div>
-            <div class="payment-field"><strong>{{ ORDER_LABELS.tracking_code }}:</strong> {{ order.payment_ref_id }}</div>
+            <div class="payment-field"><strong>{% trans "Total amount" %}:</strong> {{ order.get_total_cost|currency }}</div>
+
+            <div class="payment-field"><strong>{% trans "Tracking code" %}:</strong> {{ order.payment_ref_id|smart_digits }}</div>
         </div>
 
         <div class="payment-buttons">
-            <a href="{% url 'shop:product_list' %}" class="btn-primary">{{ ORDER_LABELS.back_to_shop }}</a>
+            <a href="{% url 'shop:product_list' %}" class="btn-primary">
+                {% trans "Back to shop" %}
+            </a>
         </div>
 
     {% elif status == "failure" %}
 
         <div class="payment-title" style="color: #c0392b;">
-            {{ ORDER_LABELS.payment_failed_title }}
+            {% trans "Payment failed" %}
         </div>
 
-        <p>{{ ORDER_LABELS.payment_failed_message }}</p>
+        <p>{% trans "The payment could not be completed." %}</p>
 
         {% if error %}
             <p style="color: #a00;">({{ error }})</p>
         {% endif %}
 
-        <p>{{ ORDER_LABELS.no_amount_deducted }}</p>
+        <p>{% trans "No amount was deducted from your account." %}</p>
 
         {% if order.coupon %}
             <div class="payment-box">
-                <div class="payment-field"><strong>{{ ORDER_LABELS.coupon_label }}:</strong> {{ order.coupon.code }}</div>
-                <div class="payment-field"><strong>{{ ORDER_LABELS.discount_label }}:</strong> {{ order.discount|currency }}</div>
-                <div class="payment-field"><strong>{{ ORDER_LABELS.final_amount_label }}:</strong> {{ order.get_total_cost|currency }}</div>
+                <div class="payment-field"><strong>{% trans "Coupon" %}:</strong> {{ order.coupon.code }}</div>
+                <div class="payment-field"><strong>{% trans "Discount" %}:</strong> {{ order.discount|currency }}</div>
+                <div class="payment-field"><strong>{% trans "Final amount" %}:</strong> {{ order.get_total_cost|currency }}</div>
             </div>
         {% endif %}
 
         <div class="payment-buttons">
-            <a href="{% url 'cart:cart_detail' %}" class="btn-primary">{{ ORDER_LABELS.back_to_cart }}</a>
-            <a href="{% url 'shop:product_list' %}" class="btn-secondary">{{ ORDER_LABELS.back_to_shop }}</a>
+            <a href="{% url 'cart:cart_detail' %}" class="btn-primary">{% trans "Back to cart" %}</a>
+            <a href="{% url 'shop:product_list' %}" class="btn-secondary">{% trans "Back to shop" %}</a>
         </div>
 
     {% elif status == "cancelled" %}
 
         <div class="payment-title" style="color: #f39c12;">
-            {{ ORDER_LABELS.payment_cancelled_title }}
+            {% trans "Payment cancelled" %}
         </div>
 
-        <p>{{ ORDER_LABELS.payment_cancelled_message }}</p>
+        <p>{% trans "You cancelled the payment process." %}</p>
 
         {% if order.coupon %}
             <div class="payment-box">
-                <div class="payment-field"><strong>{{ ORDER_LABELS.coupon_label }}:</strong> {{ order.coupon.code }}</div>
-                <div class="payment-field"><strong>{{ ORDER_LABELS.discount_label }}:</strong> {{ order.discount|currency }}</div>
-                <div class="payment-field"><strong>{{ ORDER_LABELS.final_amount_label }}:</strong> {{ order.get_total_cost|currency }}</div>
+                <div class="payment-field"><strong>{% trans "Coupon" %}:</strong> {{ order.coupon.code }}</div>
+                <div class="payment-field"><strong>{% trans "Discount" %}:</strong> {{ order.discount|currency }}</div>
+                <div class="payment-field"><strong>{% trans "Final amount" %}:</strong> {{ order.get_total_cost|currency }}</div>
             </div>
         {% endif %}
 
         <div class="payment-buttons">
-            <a href="{% url 'cart:cart_detail' %}" class="btn-primary">{{ ORDER_LABELS.back_to_cart }}</a>
-            <a href="{% url 'shop:product_list' %}" class="btn-secondary">{{ ORDER_LABELS.back_to_shop }}</a>
+            <a href="{% url 'cart:cart_detail' %}" class="btn-primary">{% trans "Back to cart" %}</a>
+            <a href="{% url 'shop:product_list' %}" class="btn-secondary">{% trans "Back to shop" %}</a>
         </div>
 
     {% else %}
 
         <div class="payment-title" style="color: #888;">
-            Unknown status
+            {% trans "Unknown status" %}
         </div>
-        <p>Please contact support.</p>
+
+        <p>{% trans "Please contact support." %}</p>
 
     {% endif %}
-
 </div>
 
 {% endblock %}

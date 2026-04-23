@@ -13,6 +13,9 @@ class Cart:
         """
         self.session = request.session
         self.coupon_id = self.session.get("coupon_id")
+
+        print("CART INIT coupon_id:", self.coupon_id)  # for debug
+
         cart = self.session.get(settings.CART_SESSION_ID)
         if not cart:
             # save an empty cart in the session

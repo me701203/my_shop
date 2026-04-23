@@ -4,10 +4,11 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import reverse, path
 from django.utils.html import format_html
-
+from django.utils.translation import gettext_lazy as _
 from .models import Order, OrderItem
 from .views import admin_order_pdf
 from .tasks import send_invoice_email_task
+import jdatetime
 
 
 # -----------------------
@@ -16,12 +17,15 @@ from .tasks import send_invoice_email_task
 def send_invoice(modeladmin, request, queryset):
     for order in queryset:
         send_invoice_email_task.delay(order.id)
+
     modeladmin.message_user(
-        request, f"Invoices successfully sent for {queryset.count()} orders."
+        request,
+        _("Invoices successfully sent for %(count)s orders.")
+        % {"count": queryset.count()},
     )
 
 
-send_invoice.short_description = "Send invoice to selected orders"
+send_invoice.short_description = _("Send invoice to selected orders")
 
 
 # -----------------------
@@ -53,7 +57,7 @@ def export_to_csv(modeladmin, request, queryset):
     return response
 
 
-export_to_csv.short_description = "Export to CSV"
+export_to_csv.short_description = _("Export to CSV")
 
 
 # -----------------------
@@ -63,6 +67,8 @@ class OrderItemInline(admin.TabularInline):
     model = OrderItem
     raw_id_fields = ["product"]
     extra = 0
+    verbose_name = _("Order item")
+    verbose_name_plural = _("Order items")
 
 
 # -----------------------
@@ -84,6 +90,7 @@ class OrderAdmin(admin.ModelAdmin):
         "coupon",
         "discount",
         "created",
+        "created_jalali",
     ]
 
     list_filter = ["payment_status", "payment_method", "created"]
@@ -100,19 +107,15 @@ class OrderAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            "Customer Information",
-            {
-                "fields": ("first_name", "last_name", "email"),
-            },
+            _("Customer Information"),
+            {"fields": ("first_name", "last_name", "email")},
         ),
         (
-            "Address",
-            {
-                "fields": ("address", "postal_code", "city"),
-            },
+            _("Address"),
+            {"fields": ("address", "postal_code", "city")},
         ),
         (
-            "Payment Information",
+            _("Payment Information"),
             {
                 "fields": (
                     "payment_method",
@@ -124,26 +127,23 @@ class OrderAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Coupon & Pricing",
+            _("Coupon & Pricing"),
             {
                 "fields": ("coupon", "discount", "total_after_discount"),
             },
         ),
         (
-            "Timestamps",
+            _("Timestamps"),
             {
                 "fields": ("created", "updated"),
             },
         ),
     )
 
-    # --------------------
-    # TOTAL AFTER DISCOUNT
-    # --------------------
     def total_after_discount(self, obj):
         return obj.get_total_cost()
 
-    total_after_discount.short_description = "Total (after discount)"
+    total_after_discount.short_description = _("Total (after discount)")
 
     # --------------------
     # STATUS BADGE
@@ -151,7 +151,6 @@ class OrderAdmin(admin.ModelAdmin):
     def payment_status_display(self, obj):
         status = obj.payment_status
 
-        # Colors based on internal values:
         color = {
             obj.PaymentStatus.SUCCESS: "green",
             obj.PaymentStatus.PENDING: "#f0ad4e",
@@ -159,7 +158,6 @@ class OrderAdmin(admin.ModelAdmin):
             obj.PaymentStatus.CANCELLED: "#6c757d",
         }.get(status, "#6c757d")
 
-        # Use the Django helper to fetch the label from TextChoices
         label = obj.get_payment_status_display()
 
         return format_html(
@@ -168,7 +166,7 @@ class OrderAdmin(admin.ModelAdmin):
             label,
         )
 
-    payment_status_display.short_description = "Payment"
+    payment_status_display.short_description = _("Payment")
 
     # --------------------
     # CUSTOM ADMIN URL
@@ -190,8 +188,19 @@ class OrderAdmin(admin.ModelAdmin):
     def invoice_pdf_link(self, obj):
         url = reverse("admin:order_invoice_pdf", args=[obj.id])
         return format_html(
-            '<a href="{}" style="color:#1e88e5; font-weight:bold;">دانلود فاکتور</a>',
+            '<a href="{}" style="color:#1e88e5; font-weight:bold;">{}</a>',
             url,
+            _("Download invoice"),
         )
 
-    invoice_pdf_link.short_description = "PDF"
+    invoice_pdf_link.short_description = _("PDF")
+
+    # --------------------
+    # JALALI CREATED DATE
+    # --------------------
+    @admin.display(description=_("Created (Jalali)"))
+    def created_jalali(self, obj):
+        if not obj.created:
+            return "-"
+        j = jdatetime.datetime.fromgregorian(datetime=obj.created)
+        return j.strftime("%Y/%m/%d")

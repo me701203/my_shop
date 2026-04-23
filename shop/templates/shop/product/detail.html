@@ -1,5 +1,6 @@
 {% extends "shop/base.html" %}
 {% load static %}
+{% load i18n %}
 {% load currency_filters %}
 
 {% block title %}
@@ -21,17 +22,34 @@
     </h2>
 
     <p class="price">
-      {{ SHOP_LABELS.price_label }}:
+      {% trans "Price" %}:
       {{ product.price|currency }}
     </p>
 
     <form action="{% url 'cart:cart_add' product.id %}" method="post">
       {{ cart_product_form }}
       {% csrf_token %}
-      <input type="submit" value="{{ SHOP_LABELS.add_to_cart }}">
+      <input type="submit" value="{% trans 'Add to cart' %}">
     </form>
 
     {{ product.description|linebreaks }}
-  
+
+    <h3>{% trans "Customers who bought this also bought:" %}</h3>
+
+    <div class="recommended-grid">
+    {% for p in recommended_products %}
+      <div class="recommended-item">
+        <a href="{{ p.get_absolute_url }}">
+          <div class="recommended-image">
+            {% if p.image %}
+              <img src="{{ p.image.url }}" alt="{{ p.name }}">
+            {% else %}
+              <img src="/static/img/no_image.png" alt="{% trans 'No image' %}">
+            {% endif %}
+          </div>
+          <p class="recommended-title">{{ p.name }}</p>
+        </a>
+      </div>
+    {% endfor %}
   </div>
 {% endblock %}

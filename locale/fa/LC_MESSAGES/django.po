@@ -1,0 +1,603 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-23 21:05+0330\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: .\cart\templates\cart\detail.html:8 .\cart\templates\cart\detail.html:12
+msgid "Your shopping cart"
+msgstr "سبد خرید شما"
+
+#: .\cart\templates\cart\detail.html:16
+msgid "Image"
+msgstr "تصویر"
+
+#: .\cart\templates\cart\detail.html:17
+msgid "Product"
+msgstr "محصول"
+
+#: .\cart\templates\cart\detail.html:18
+msgid "Quantity"
+msgstr "تعداد"
+
+#: .\cart\templates\cart\detail.html:19 .\cart\templates\cart\detail.html:45
+msgid "Remove"
+msgstr "حذف"
+
+#: .\cart\templates\cart\detail.html:20
+msgid "Unit price"
+msgstr "قیمت واحد"
+
+#: .\cart\templates\cart\detail.html:21
+#: .\shop\templates\shop\product\detail.html:25
+msgid "Price"
+msgstr "قیمت"
+
+#: .\cart\templates\cart\detail.html:39
+msgid "Update"
+msgstr "به‌روزرسانی"
+
+#: .\cart\templates\cart\detail.html:55
+msgid "Total"
+msgstr "جمع"
+
+#: .\cart\templates\cart\detail.html:64
+msgid "Have a coupon?"
+msgstr "کد تخفیف دارید؟"
+
+#: .\cart\templates\cart\detail.html:65
+msgid "Apply"
+msgstr "اعمال"
+
+#: .\cart\templates\cart\detail.html:69
+msgid "Coupon applied:"
+msgstr "کد تخفیف اعمال شد:"
+
+#: .\cart\templates\cart\detail.html:70
+msgid "Discount:"
+msgstr "تخفیف"
+
+#: .\cart\templates\cart\detail.html:71
+msgid "Total after discount:"
+msgstr "مبلغ پس از تخفیف"
+
+#: .\cart\templates\cart\detail.html:76
+msgid "Continue shopping"
+msgstr "ادامه خرید"
+
+#: .\cart\templates\cart\detail.html:79
+#: .\orders\templates\orders\order\create.html:7
+#: .\orders\templates\orders\order\create.html:11
+msgid "Checkout"
+msgstr "ثبت سفارش"
+
+#: .\coupon\admin.py:18 .\coupon\models.py:86
+#: .\orders\templates\orders\order\create.html:30
+#: .\payment\templates\payment\payment_status.html:46
+#: .\payment\templates\payment\payment_status.html:77
+#: .\payment\templates\payment\payment_status.html:98
+#, fuzzy
+#| msgid "Discount:"
+msgid "Discount"
+msgstr "تخفیف"
+
+#: .\coupon\models.py:12
+msgid "Percentage"
+msgstr "درصدی"
+
+#: .\coupon\models.py:13
+msgid "Fixed amount"
+msgstr "مقدار ثابت"
+
+#: .\coupon\models.py:16
+msgid "code"
+msgstr "کد"
+
+#: .\coupon\models.py:18
+msgid "valid from"
+msgstr "معتبر از"
+
+#: .\coupon\models.py:19
+msgid "valid to"
+msgstr "معتبر تا"
+
+#: .\coupon\models.py:22
+#, fuzzy
+#| msgid "Discount:"
+msgid "discount type"
+msgstr "نوع تخفیف"
+
+#: .\coupon\models.py:26
+#, fuzzy
+#| msgid "Discount:"
+msgid "discount value"
+msgstr "مقدار تخفیف"
+
+#: .\coupon\models.py:33
+msgid "minimum order amount"
+msgstr "حداقل مبلغ سفارش"
+
+#: .\coupon\models.py:41
+msgid "maximum discount amount"
+msgstr "حداکثر مبلغ تخفیف"
+
+#: .\coupon\models.py:49
+msgid "maximum uses"
+msgstr "حداکثر تعداد استفاده"
+
+#: .\coupon\models.py:52
+msgid "Maximum number of times this coupon can be used."
+msgstr "حداکثر تعداد دفعاتی که این کد تخفیف قابل استفاده است."
+
+#: .\coupon\models.py:55
+msgid "uses"
+msgstr "تعداد استفاده"
+
+#: .\coupon\models.py:60
+msgid "valid users"
+msgstr "کاربران مجاز"
+
+#: .\coupon\models.py:61
+msgid "Leave empty if coupon is valid for all users."
+msgstr "در صورت خالی بودن، کد تخفیف برای همه کاربران معتبر خواهد بود."
+
+#: .\coupon\models.py:64
+msgid "active"
+msgstr "فعال"
+
+#: .\coupon\models.py:66 .\orders\models.py:23 .\shop\models.py:38
+msgid "created"
+msgstr "ایجاد شده"
+
+#: .\coupon\models.py:67 .\orders\models.py:24 .\shop\models.py:39
+#, fuzzy
+#| msgid "Update"
+msgid "updated"
+msgstr "به‌روزرسانی شده"
+
+#: .\coupon\models.py:75 .\orders\models.py:77
+#, fuzzy
+#| msgid "Have a coupon?"
+msgid "coupon"
+msgstr "کد تخفیف"
+
+#: .\coupon\models.py:76
+msgid "coupons"
+msgstr "کدهای تخفیف"
+
+#: .\orders\admin.py:23
+#, python-format
+msgid "Invoices successfully sent for %(count)s orders."
+msgstr "فاکتور %(count)s سفارش با موفقیت ارسال شد."
+
+#: .\orders\admin.py:28
+msgid "Send invoice to selected orders"
+msgstr "ارسال فاکتور برای سفارش‌های انتخاب‌شده"
+
+#: .\orders\admin.py:60
+msgid "Export to CSV"
+msgstr "خروجی CSV"
+
+#: .\orders\admin.py:70
+msgid "Order item"
+msgstr "آیتم سفارش"
+
+#: .\orders\admin.py:71
+msgid "Order items"
+msgstr "آیتم‌های سفارش"
+
+#: .\orders\admin.py:110
+msgid "Customer Information"
+msgstr "اطلاعات مشتری"
+
+#: .\orders\admin.py:114 .\orders\forms.py:21
+msgid "Address"
+msgstr "آدرس"
+
+#: .\orders\admin.py:118
+#, fuzzy
+#| msgid "Payment Method"
+msgid "Payment Information"
+msgstr "اطلاعات پرداخت"
+
+#: .\orders\admin.py:130
+msgid "Coupon & Pricing"
+msgstr "کد تخفیف و قیمت‌گذاری"
+
+#: .\orders\admin.py:136
+msgid "Timestamps"
+msgstr "زمان‌ها"
+
+#: .\orders\admin.py:146
+#, fuzzy
+#| msgid "Total after discount:"
+msgid "Total (after discount)"
+msgstr "مبلغ پس از تخفیف"
+
+#: .\orders\admin.py:169
+#, fuzzy
+#| msgid "Payment Method"
+msgid "Payment"
+msgstr "پرداخت"
+
+#: .\orders\admin.py:193
+msgid "Download invoice"
+msgstr "دانلود فاکتور"
+
+#: .\orders\admin.py:196
+msgid "PDF"
+msgstr "PDF"
+
+#: .\orders\admin.py:201
+msgid "Created (Jalali)"
+msgstr "ایجاد شده (جلالی)"
+
+#: .\orders\forms.py:18
+msgid "First name"
+msgstr "نام"
+
+#: .\orders\forms.py:19
+msgid "Last name"
+msgstr "نام خانوادگی"
+
+#: .\orders\forms.py:20
+msgid "Email"
+msgstr "ایمیل"
+
+#: .\orders\forms.py:22
+msgid "Postal code"
+msgstr "کد پستی"
+
+#: .\orders\forms.py:23
+msgid "City"
+msgstr "شهر"
+
+#: .\orders\models.py:10
+msgid "Pending"
+msgstr "در انتظار"
+
+#: .\orders\models.py:11
+msgid "Success"
+msgstr "موفق"
+
+#: .\orders\models.py:12
+msgid "Failed"
+msgstr "ناموفق"
+
+#: .\orders\models.py:13
+msgid "Cancelled"
+msgstr "لغو شده"
+
+#: .\orders\models.py:15
+msgid "first name"
+msgstr "نام"
+
+#: .\orders\models.py:16
+msgid "last name"
+msgstr "نام خانوادگی"
+
+#: .\orders\models.py:17
+msgid "email"
+msgstr "ایمیل"
+
+#: .\orders\models.py:19
+msgid "address"
+msgstr "آدرس"
+
+#: .\orders\models.py:20
+msgid "postal code"
+msgstr "کد پستی"
+
+#: .\orders\models.py:21
+msgid "city"
+msgstr "شهر"
+
+#: .\orders\models.py:26
+msgid "paid"
+msgstr "پرداخت شده"
+
+#: .\orders\models.py:27
+msgid "paid at"
+msgstr "زمان پرداخت"
+
+#: .\orders\models.py:30
+#, fuzzy
+#| msgid "Payment Method"
+msgid "payment method"
+msgstr "روش پرداخت"
+
+#: .\orders\models.py:34
+msgid "payment status"
+msgstr "وضعیت پرداخت"
+
+#: .\orders\models.py:41
+#, fuzzy
+#| msgid "Payment Method"
+msgid "payment authority"
+msgstr "کد پیگیری پرداخت"
+
+#: .\orders\models.py:44
+msgid "payment reference ID"
+msgstr "شناسه مرجع پرداخت"
+
+#: .\orders\models.py:49 .\orders\models.py:90
+#, fuzzy
+#| msgid "Your order"
+msgid "order"
+msgstr "سفارش"
+
+#: .\orders\models.py:50
+#, fuzzy
+#| msgid "Your order"
+msgid "orders"
+msgstr "سفارش‌ها"
+
+#: .\orders\models.py:56
+#, python-format
+msgid "Order %(id)s"
+msgstr "سفارش %(id)s"
+
+#: .\orders\models.py:72
+msgid "Logs"
+msgstr "گزارش‌ها"
+
+#: .\orders\models.py:84
+#, fuzzy
+#| msgid "Discount:"
+msgid "discount"
+msgstr "تخفیف"
+
+#: .\orders\models.py:96 .\shop\models.py:48
+#, fuzzy
+#| msgid "Product"
+msgid "product"
+msgstr "محصول"
+
+#: .\orders\models.py:101 .\shop\models.py:36
+#, fuzzy
+#| msgid "Price"
+msgid "price"
+msgstr "قیمت"
+
+#: .\orders\models.py:102
+#, fuzzy
+#| msgid "Quantity"
+msgid "quantity"
+msgstr "تعداد"
+
+#: .\orders\templates\orders\order\create.html:13
+msgid "Your order"
+msgstr "سفارش شما"
+
+#: .\orders\templates\orders\order\create.html:23
+#: .\payment\templates\payment\payment_status.html:49
+#, fuzzy
+#| msgid "Total after discount:"
+msgid "Total amount"
+msgstr "مبلغ کل"
+
+#: .\orders\templates\orders\order\create.html:27
+#: .\payment\templates\payment\payment_status.html:45
+#: .\payment\templates\payment\payment_status.html:76
+#: .\payment\templates\payment\payment_status.html:97
+#, fuzzy
+#| msgid "Have a coupon?"
+msgid "Coupon"
+msgstr "کد تخفیف"
+
+#: .\orders\templates\orders\order\create.html:35
+#: .\payment\templates\payment\payment_status.html:78
+#: .\payment\templates\payment\payment_status.html:99
+#, fuzzy
+#| msgid "Fixed amount"
+msgid "Final amount"
+msgstr "مبلغ نهایی"
+
+#: .\orders\templates\orders\order\create.html:48
+msgid "Payment Method"
+msgstr "روش پرداخت"
+
+#: .\orders\templates\orders\order\create.html:55
+msgid "Place order"
+msgstr "ثبت سفارش"
+
+#: .\orders\templates\orders\order\created.html:6
+#: .\orders\templates\orders\order\created.html:10
+msgid "Thank you"
+msgstr "سپاسگزاریم"
+
+#: .\orders\templates\orders\order\created.html:11
+msgid "Your order has been successfully completed. Your order number is"
+msgstr "سفارش شما با موفقیت ثبت شد. شماره سفارش شما"
+
+#: .\payment\templates\payment\fake_bank.html:6
+#: .\payment\templates\payment\fake_bank.html:11
+msgid "Test Payment Gateway"
+msgstr "درگاه پرداخت آزمایشی"
+
+#: .\payment\templates\payment\fake_bank.html:14
+msgid "Amount"
+msgstr "مبلغ"
+
+#: .\payment\templates\payment\fake_bank.html:20
+msgid "Select payment result"
+msgstr "نتیجه پرداخت را انتخاب کنید"
+
+#: .\payment\templates\payment\fake_bank.html:22
+msgid "Successful payment"
+msgstr "پرداخت موفق"
+
+#: .\payment\templates\payment\fake_bank.html:23
+#, fuzzy
+#| msgid "Cancelled"
+msgid "Cancel payment"
+msgstr "لغو پرداخت"
+
+#: .\payment\templates\payment\fake_bank.html:28
+#, fuzzy
+#| msgid "Continue shopping"
+msgid "Continue"
+msgstr "ادامه"
+
+#: .\payment\templates\payment\payment_status.html:8
+#: .\payment\templates\payment\payment_status.html:37
+#, fuzzy
+#| msgid "payment status"
+msgid "Payment successful"
+msgstr "پرداخت با موفقیت انجام شد"
+
+#: .\payment\templates\payment\payment_status.html:10
+#: .\payment\templates\payment\payment_status.html:63
+#, fuzzy
+#| msgid "Payment Method"
+msgid "Payment failed"
+msgstr "پرداخت ناموفق بود"
+
+#: .\payment\templates\payment\payment_status.html:12
+#: .\payment\templates\payment\payment_status.html:90
+#, fuzzy
+#| msgid "Payment Method"
+msgid "Payment cancelled"
+msgstr "پرداخت لغو شد"
+
+#: .\payment\templates\payment\payment_status.html:14
+#, fuzzy
+#| msgid "payment status"
+msgid "Payment status"
+msgstr "وضعیت پرداخت"
+
+#: .\payment\templates\payment\payment_status.html:42
+#, fuzzy
+#| msgid "Order item"
+msgid "Order ID"
+msgstr "شناسه سفارش"
+
+#: .\payment\templates\payment\payment_status.html:51
+msgid "Tracking code"
+msgstr "کد پیگیری"
+
+#: .\payment\templates\payment\payment_status.html:56
+#: .\payment\templates\payment\payment_status.html:84
+#: .\payment\templates\payment\payment_status.html:105
+msgid "Back to shop"
+msgstr "بازگشت به فروشگاه"
+
+#: .\payment\templates\payment\payment_status.html:66
+msgid "The payment could not be completed."
+msgstr "پرداخت انجام نشد."
+
+#: .\payment\templates\payment\payment_status.html:72
+msgid "No amount was deducted from your account."
+msgstr "هیچ مبلغی از حساب شما کسر نشد."
+
+#: .\payment\templates\payment\payment_status.html:83
+#: .\payment\templates\payment\payment_status.html:104
+msgid "Back to cart"
+msgstr "بازگشت به سبد خرید"
+
+#: .\payment\templates\payment\payment_status.html:93
+msgid "You cancelled the payment process."
+msgstr "شما فرایند پرداخت را لغو کردید."
+
+#: .\payment\templates\payment\payment_status.html:111
+msgid "Unknown status"
+msgstr "وضعیت نامشخص"
+
+#: .\payment\templates\payment\payment_status.html:114
+msgid "Please contact support."
+msgstr "لطفاً با پشتیبانی تماس بگیرید."
+
+#: .\shop\models.py:7 .\shop\models.py:32
+msgid "name"
+msgstr "نام"
+
+#: .\shop\models.py:8 .\shop\models.py:33
+msgid "slug"
+msgstr "اسلاگ"
+
+#: .\shop\models.py:15 .\shop\models.py:30
+#, fuzzy
+#| msgid "Categories"
+msgid "category"
+msgstr "دسته‌بندی"
+
+#: .\shop\models.py:16
+#, fuzzy
+#| msgid "Categories"
+msgid "categories"
+msgstr "دسته‌بندی‌ها"
+
+#: .\shop\models.py:34
+#, fuzzy
+#| msgid "Image"
+msgid "image"
+msgstr "تصویر"
+
+#: .\shop\models.py:35
+msgid "description"
+msgstr "توضیحات"
+
+#: .\shop\models.py:37
+msgid "available"
+msgstr "موجود"
+
+#: .\shop\models.py:49
+#, fuzzy
+#| msgid "Products"
+msgid "products"
+msgstr "محصولات"
+
+#: .\shop\templates\shop\base.html:10 .\shop\templates\shop\base.html:25
+msgid "My shop"
+msgstr "فروشگاه من"
+
+#: .\shop\templates\shop\base.html:47
+#, fuzzy
+#| msgid "Your shopping cart"
+msgid "Your cart"
+msgstr "سبد خرید"
+
+#: .\shop\templates\shop\base.html:50
+msgid "Your cart is empty."
+msgstr "سبد خرید شما خالی است"
+
+#: .\shop\templates\shop\product\detail.html:32
+#, fuzzy
+#| msgid "Your shopping cart"
+msgid "Add to cart"
+msgstr "افزودن به سبد خرید"
+
+#: .\shop\templates\shop\product\detail.html:37
+msgid "Customers who bought this also bought:"
+msgstr "مشتریانی که این محصول را خریده‌اند، این محصولات را نیز خریده‌اند:"
+
+#: .\shop\templates\shop\product\detail.html:47
+msgid "No image"
+msgstr "بدون تصویر"
+
+#: .\shop\templates\shop\product\list.html:7
+#: .\shop\templates\shop\product\list.html:25
+msgid "Products"
+msgstr "محصولات"
+
+#: .\shop\templates\shop\product\list.html:12
+msgid "Categories"
+msgstr "دسته‌بندی‌ها"
+
+#: .\shop\templates\shop\product\list.html:15
+msgid "All"
+msgstr "همه"

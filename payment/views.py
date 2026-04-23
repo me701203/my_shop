@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils import timezone
 from orders.models import Order
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 from .gateways.fake import FakeGateway
 from .gateways.zarinpal import ZarinpalGateway
@@ -39,7 +40,7 @@ def payment_process(request, order_id):
     success, redirect_url, authority, error = gateway.request(order, callback_url)
 
     if not success:
-        return HttpResponse(f"Payment error: {error}")
+        return HttpResponse(_("Payment error: %(error)s") % {"error": error})
 
     order.payment_method = request.session.get("gateway", "fake")
     order.payment_authority = authority
@@ -116,7 +117,7 @@ def payment_verify(request, order_id):
     # --- 2. ANTI‑TAMPERING ---
     authority = gateway.get_authority(request)
     if authority != order.payment_authority:
-        return HttpResponse("Invalid payment callback.")
+        return HttpResponse(_("Invalid payment callback."))
 
     # --- 3. VERIFY WITH GATEWAY ---
     success, ref_id, error = gateway.verify(request, order)

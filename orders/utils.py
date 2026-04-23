@@ -136,7 +136,7 @@ def format_price(value):
     Matches the logic of your |currency template filter.
     """
     # 1. Format with commas (2500 -> 2,500)
-    formatted = "{:,.0f}".format(float(value))
+    formatted = "{:,.0f}".format(int(value))
     # 2. Add Currency Symbol from settings
     text = f"{formatted} {settings.CURRENCY_SYMBOL}"
     # 3. Convert English digits to Persian
@@ -203,11 +203,11 @@ def measure_text_widths(order, font_name="Vazir", font_size=12):
         max_name_w = max(max_name_w, get_w(name_text))
 
         # Price (just numbers)
-        price_text = arabic_text("{:,.0f}".format(item.price))
+        price_text = arabic_text("{:,.0f}".format(int(item.price)))
         max_price_w = max(max_price_w, get_w(price_text))
 
         # Sum
-        sum_text = arabic_text("{:,.0f}".format(item.get_cost()))
+        sum_text = arabic_text("{:,.0f}".format(int(item.get_cost())))
         max_sum_w = max(max_sum_w, get_w(sum_text))
 
     return {
@@ -646,7 +646,7 @@ def generate_invoice_pdf(order):
         c.drawCentredString(quantity_center, text_y, str(item.quantity))
 
         # --- Price ---
-        price_clean = arabic_text("{:,.0f}".format(item.price))
+        price_clean = arabic_text("{:,.0f}".format(int(item.price)))
         draw_safe_text(
             c,
             price_clean,
@@ -659,7 +659,7 @@ def generate_invoice_pdf(order):
         )
 
         # --- Sum ---
-        sum_clean = arabic_text("{:,.0f}".format(item.get_cost()))
+        sum_clean = arabic_text("{:,.0f}".format(int(item.get_cost())))
         draw_safe_text(
             c,
             sum_clean,

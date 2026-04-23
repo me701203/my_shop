@@ -1,14 +1,16 @@
 {% extends "shop/base.html" %}
 {% load currency_filters %}
+{% load digits %}
+{% load i18n %}
 
 {% block title %}
-  Checkout
+  {% trans "Checkout" %}
 {% endblock %}
 
 {% block content %}
-  <h1>Checkout</h1>
+  <h1>{% trans "Checkout" %}</h1>
   <div class="order-info">
-    <h3>Your order</h3>
+    <h3>{% trans "Your order" %}</h3>
     <ul>
       {% for item in cart %}
         <li>
@@ -18,19 +20,19 @@
       {% endfor %}
     </ul>
 
-    <p><strong>{{ ORDER_LABELS.total_amount }}:</strong> {{ cart.get_total_price|currency }}</p>
+    <p><strong>{% trans "Total amount" %}:</strong> {{ cart.get_total_price|currency }}</p>
 
     {% if cart.coupon %}
     <div style="margin-top:15px;padding:12px;background:#f7f7f7;border-radius:6px">
-      <p><strong>{{ ORDER_LABELS.coupon_label }}:</strong> {{ cart.coupon.code }}</p>
+      <p><strong>{% trans "Coupon" %}:</strong> {{ cart.coupon.code }}</p>
 
       <p>
-        <strong>{{ ORDER_LABELS.discount_label }}:</strong>
+        <strong>{% trans "Discount" %}:</strong>
         - {{ cart.get_discount|currency }}
       </p>
 
       <p style="font-size:18px;font-weight:bold">
-        <strong>{{ ORDER_LABELS.final_amount_label }}:</strong>
+        <strong>{% trans "Final amount" %}:</strong>
         {{ cart.get_total_price_after_discount|currency }}
       </p>
     </div>
@@ -39,19 +41,19 @@
   </div>
 
   <form method="post" class="order-form">
+    {% csrf_token %}
+    
     {{ form.as_p }}
   
-    <label>Payment Method</label>
+    <label>{% trans "Payment Method" %}</label>
     <select name="gateway">
       {% for key, gateway in gateways.items %}
         <option value="{{ key }}">{{ gateway.NAME }}</option>
       {% endfor %}
     </select>
 
-
+    <p><input type="submit" value="{% trans 'Place order' %}"></p>
   
-    <p><input type="submit" value="Place order"></p>
-    {% csrf_token %}
   </form>
   
 {% endblock %}

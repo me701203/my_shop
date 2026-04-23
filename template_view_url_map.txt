@@ -1,0 +1,23 @@
+TEMPLATE → VIEW → URL MAP
+
+CART
+cart/templates/cart/detail.html -> cart_detail (cart/views.py) -> /cart/ (cart:cart_detail)
+
+ORDERS
+orders/templates/orders/order/create.html -> order_create (orders/views.py) -> /orders/create/ (orders:order_create)
+orders/templates/orders/order/created.html -> UNUSED TEMPLATE
+orders/templates/orders/pdf/invoice.html -> admin_order_pdf (orders/views.py) -> /orders/admin/order/<id>/pdf/ (orders:admin_order_pdf)
+
+PAYMENT
+payment/templates/payment/fake_bank.html -> fake_bank (payment/views.py) -> /payment/fake-bank/<id>/ (payment:fake_bank)
+payment/templates/payment/payment_status.html -> payment_verify (payment/views.py) -> /payment/verify/<id>/ (payment:verify)
+payment/templates/payment/success.html -> UNUSED TEMPLATE
+payment/templates/payment/failure.html -> UNUSED TEMPLATE
+
+SHOP
+shop/templates/shop/product/list.html -> product_list (shop/views.py) -> / , /<category_slug>/ (shop:product_list, shop:product_list_by_category)
+shop/templates/shop/product/detail.html -> product_detail (shop/views.py) -> /<id>/<slug>/ (shop:product_detail)
+shop/templates/shop/base.html -> base layout (no direct URL)
+
+OTHER
+/set-digits/ -> set_digits (shop/views.py)

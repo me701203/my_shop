@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 from .models import Coupon
 
 
@@ -14,4 +15,4 @@ class CouponAdmin(admin.ModelAdmin):
             return f"{obj.discount_value}%"
         return f"{obj.discount_value} {settings.CURRENCY_SYMBOL}"
 
-    formatted_discount.short_description = "Discount"
+    formatted_discount.short_description = _("Discount")

@@ -16,6 +16,11 @@ import environ
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Locale
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
+
 # Load environment variables
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / ".env")
@@ -50,6 +55,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # Language detection happens here
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -57,12 +64,13 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 ROOT_URLCONF = "myshop.urls"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -71,8 +79,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "cart.context_processors.cart",
-                "myshop.core.context_processors.currency",
                 "myshop.core.context_processors.labels",
+                "shop.context_processors.digits.digit_mode",
             ],
         },
     },
@@ -114,12 +122,21 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGES = [
+    ("en", "English"),
+    ("fa", "Persian"),
+    # Example future languages:
+    # ('de', 'German'),
+    # ('fr', 'French'),
+]
+
+# keep default admin in English
+LANGUAGE_CODE = "en"
 
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
 
 
@@ -214,7 +231,10 @@ PAYMENT_GATEWAYS = {
 
 # Currency Settings
 CURRENCY_CODE = "IRR"
-CURRENCY_SYMBOL = "تومان"
+CURRENCY_SYMBOLS = {
+    "fa": "تومان",
+    "en": "Toman",
+}
 
 # Invoice / Order labels (RTL friendly)
 ORDER_LABELS = {
@@ -279,3 +299,6 @@ SHOP_LABELS = {
     "price_label": "قیمت",
     "quantity_label": "تعداد",
 }
+
+# Default currency symbol (used by PDF generator)
+CURRENCY_SYMBOL = "تومان"
