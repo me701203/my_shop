@@ -5,9 +5,43 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from decimal import Decimal
 from django.core.validators import MinValueValidator
+from django.utils import timezone
+from datetime import timedelta
 
 
 class Order(models.Model):
+    class FulfillmentStatus(models.TextChoices):
+        PENDING = "pending", _("Pending")
+        CONFIRMED = "confirmed", _("Confirmed")
+        PACKAGING = "packaging", _("Packaging")
+        SHIPPED = "shipped", _("Shipped")
+        DELIVERED = "delivered", _("Delivered")
+        CANCELLED = "cancelled", _("Cancelled")
+
+    fulfillment_status = models.CharField(
+        max_length=20,
+        choices=FulfillmentStatus.choices,
+        default=FulfillmentStatus.PENDING,
+    )
+
+    class ReservationStatus(models.TextChoices):
+        RESERVED = "reserved", _("Reserved")
+        PAID = "paid", _("Paid")
+        FAILED = "failed", _("Failed")
+        EXPIRED = "expired", _("Expired")
+
+    reservation_status = models.CharField(
+        max_length=20,
+        choices=ReservationStatus.choices,
+        default=ReservationStatus.RESERVED,
+    )
+
+    reserved_until = models.DateTimeField(null=True, blank=True)
+
+    payment_reference = models.CharField(
+        max_length=255, blank=True, null=True, unique=True
+    )
+
     class PaymentStatus(models.TextChoices):
         PENDING = "pending", _("Pending")
         SUCCESS = "success", _("Success")
@@ -43,7 +77,11 @@ class Order(models.Model):
         _("payment authority"), max_length=100, blank=True, null=True
     )
     payment_ref_id = models.CharField(
-        _("payment reference ID"), max_length=100, blank=True, null=True
+        _("payment reference ID"), max_length=100, blank=True, null=True, unique=True
+    )
+    payment_processing = models.BooleanField(
+        default=False,
+        help_text=_("Prevents multiple simultaneous payment verifications"),
     )
 
     class Meta:

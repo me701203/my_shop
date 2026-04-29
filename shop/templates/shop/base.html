@@ -6,6 +6,36 @@
 {% get_current_language as CURRENT_LANG %}
 <html lang="{{ CURRENT_LANG }}" {% if CURRENT_LANG == 'fa' %}dir="rtl"{% endif %}>
   <head>
+    <style>
+      .alert {
+          padding: 12px 18px;
+          border-radius: 6px;
+          margin-bottom: 20px;
+          font-size: 15px;
+          border: 1px solid transparent;
+          direction: inherit; /* works for RTL (Farsi) and LTR */
+      }
+      .alert-error {
+          background: #ffecec;
+          border-color: #ffb3b3;
+          color: #d40000;
+      }
+      .alert-success {
+          background: #e8fced;
+          border-color: #b2efc2;
+          color: #0a7d33;
+      }
+      .alert-warning {
+          background: #fff9e6;
+          border-color: #ffe8a3;
+          color: #8a6d00;
+      }
+      .alert-info {
+          background: #eaf6ff;
+          border-color: #c5e4ff;
+          color: #005f9e;
+      }
+    </style>    
     <meta charset="utf-8" />
     <title>{% block title %}{% trans "My shop" %}{% endblock %}</title>
   
@@ -41,20 +71,25 @@
 
     <div id="subheader">
       <div class="cart">
-        {% with total_items=cart|length %}
-          {% if total_items > 0 %}
-            <a href="{% url 'cart:cart_detail' %}">
-              {% trans "Your cart" %}: {{ cart.get_total_price|currency }}
-            </a>
-          {% elif not order %}
-            {% trans "Your cart is empty." %}
-          {% endif %}
-        {% endwith %}
+        <a href="{% url 'cart:cart_detail' %}">
+          {% trans "Your cart" %}:
+          <span id="header-cart-total">
+            {% with total_items=cart|length %}
+              {% if total_items > 0 %}
+                {{ cart.get_total_price|currency }}
+              {% else %}
+                {% trans "Your cart is empty." %}
+              {% endif %}
+            {% endwith %}
+          </span>
+        </a>
       </div>
     </div>
 
     <div id="content">
       {% block content %}{% endblock %}
     </div>
+
+    {% block extra_js %}{% endblock %}
   </body>
 </html>

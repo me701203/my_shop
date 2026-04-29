@@ -47,7 +47,14 @@ class Recommender:
 
         suggested_products_ids = [int(id) for id in suggestions]
 
-        suggested_products = list(Product.objects.filter(id__in=suggested_products_ids))
+        if not suggested_products_ids:
+            return []
+
+        suggested_products = list(
+            Product.available_items.available()
+            .filter(id__in=suggested_products_ids)
+            .select_related("category")
+        )
 
         suggested_products.sort(key=lambda x: suggested_products_ids.index(x.id))
 

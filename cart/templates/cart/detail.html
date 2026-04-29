@@ -3,12 +3,116 @@
 {% load i18n %}
 {% load currency_filters %}
 {% load digits %}
-
+  
 {% block title %}
   {% trans "Your shopping cart" %}
 {% endblock %}
 
 {% block content %}
+<style>
+
+  table.cart {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  table.cart th,
+  table.cart td {
+    padding: 12px;
+    vertical-align: middle;
+  }
+  
+  table.cart th {
+    text-align: left;
+  }
+  
+  table.cart td:nth-child(3),
+  table.cart th:nth-child(3) {
+    width: 180px;
+  }
+  
+  table.cart td:nth-child(4),
+  table.cart th:nth-child(4) {
+    width: 140px;
+  }
+  
+  table.cart td:nth-child(5),
+  table.cart th:nth-child(5),
+  table.cart td:nth-child(6),
+  table.cart th:nth-child(6) {
+    text-align: right;
+    width: 160px;
+    white-space: nowrap;
+  }
+  
+  .quantity-input {
+    width: 70px;
+    padding: 6px;
+    margin-right: 6px;
+  }
+  
+  button {
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  
+  .adjusted-row {
+    background-color: #fff9dd;
+    transition: background 0.4s ease;
+  }
+
+  .cart-danger-box {
+    background-color: #fdecea;
+    border-left: 5px solid #d32f2f;
+    color: #b71c1c;
+    padding: 14px;
+    margin: 20px 0;
+    font-weight: 600;
+    border-radius: 4px;
+  }
+  
+  .cart-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+  }
+  
+  .cart-actions .button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+</style>
+  
+  {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+          </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% if stock_adjustments %}
+    <div class="cart-danger-box">
+        <strong>{% trans "Some quantities were adjusted due to stock changes:" %}</strong>
+        <ul>
+            {% for adj in stock_adjustments %}
+                <li>
+                    {{ adj.product.name }}
+                    {% if adj.variant %}
+                        ({{ adj.variant.color }} {{ adj.variant.size }})
+                    {% endif %}
+                    {% blocktrans with old=adj.old_qty new=adj.new_qty %}
+                    adjusted from {{ old }} to {{ new }}.
+                    {% endblocktrans %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+  {% endif %}
+
   <h1>{% trans "Your shopping cart" %}</h1>
   <table class="cart">
     <thead>
@@ -24,39 +128,101 @@
     <tbody>
       {% for item in cart %}
         {% with product=item.product %}
-          <tr>
+          <tr class="cart-row
+          {% if stock_adjustments %}
+            {% for adj in stock_adjustments %}
+              {% if adj.key == item.key %} adjusted-row{% endif %}
+            {% endfor %}
+          {% endif %}"
+          data-product-id="{{ product.id }}"
+          data-variant-id="{% if item.variant %}{{ item.variant.id }}{% else %}default{% endif %}">
             <td>
               <a href="{{ product.get_absolute_url }}">
                 <img src="{% if product.image %}{{ product.image.url }}
                 {% else %}{% static "img/no_image.png" %}{% endif %}">
               </a>
             </td>
-            <td>{{ product.name }}</td>
+            <td>
+              {{ product.name }}
+              {# Show variant details if present #}
+              {% if item.variant %}
+                <div class="cart-variant">
+                  {% if item.variant.size %}
+                    <small>{% trans "Size" %}: {{ item.variant.size }}</small><br>
+                  {% endif %}
+                  {% if item.variant.color %}
+                    <small>{% trans "Color" %}: {{ item.variant.color }}</small><br>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              {# INLINE STOCK PROBLEM LABEL #}
+              {% if item.variant %}
+                  {% if item.variant.stock < item.quantity %}
+                      <div style="color:red;font-weight:bold;margin-top:5px;">
+                          {% trans "Out of stock" %} — 
+                          {% if item.variant.stock > 0 %}
+                            {% blocktrans with n=item.variant.stock %}only {{ n }} left{% endblocktrans %}
+                          {% else %}
+                            {% blocktrans %}0 left{% endblocktrans %}
+                          {% endif %}
+                      </div>
+                  {% endif %}
+              {% else %}
+                  {% if item.product.stock < item.quantity %}
+                      <div style="color:red;font-weight:bold;margin-top:5px;">
+                          {% trans "Out of stock" %} — 
+                          {% if item.product.stock > 0 %}
+                            {% blocktrans with n=item.product.stock %}only {{ n }} left{% endblocktrans %}
+                          {% else %}
+                            {% blocktrans %}0 left{% endblocktrans %}
+                          {% endif %}
+                      </div>
+                  {% endif %}
+              {% endif %}
+            </td>            
+
             <td>
               <form action="{% url "cart:cart_add" product.id %}" method="post">
                 {{ item.update_quantity_form.quantity }}
                 {{ item.update_quantity_form.override }}
-                <input type="submit" value="{% trans 'Update' %}">
+            
+                {# Keep the variant id associated with this cart line #}
+                {% if item.variant %}
+                  <input type="hidden" name="variant_id" value="{{ item.variant.id }}">
+                {% else %}
+                  <input type="hidden" name="variant_id" value="">
+                {% endif %}
+            
+                <button type="submit">{% trans "Update" %}</button>
                 {% csrf_token %}
               </form>
-            </td>
+            </td>            
+
             <td>
               <form action="{% url "cart:cart_remove" product.id %}" method="post">
-                <input type="submit" value="{% trans 'Remove' %}">
+                {% if item.variant %}
+                  <input type="hidden" name="variant_id" value="{{ item.variant.id }}">
+                {% else %}
+                  <input type="hidden" name="variant_id" value="">
+                {% endif %}
+                <button type="submit">{% trans "Remove" %}</button>
                 {% csrf_token %}
               </form>
             </td>
-            <td class="num">{{ item.price|currency }}</td>
-            <td class="num">{{ item.total_price|currency }}</td>
+            
+            <td class="num unit-price">{{ item.price|currency }}</td>
+            <td class="num line-total">{{ item.total_price|currency }}</td>
           </tr>
         {% endwith %}
       {% endfor %}
       <tr class="total">
         <td>{% trans "Total" %}</td>
         <td colspan="4"></td>
-        <td class="num">{{ cart.get_total_price|currency }}</td>
+        <td class="num" id="cart-total">{{ cart.get_total_price|currency }}</td>
       </tr>
     </tbody>
+
   </table>
   {# Coupon Apply Form #}
   <form action="{% url 'coupon:apply' %}" method="post" style="margin-top: 20px;">
@@ -65,18 +231,179 @@
     <button type="submit">{% trans "Apply" %}</button>
   </form>
   {% if cart.coupon %}
-    <div style="margin-top: 20px; padding: 10px; background: #f7f7f7; border-radius: 6px;">
-        <p>{% trans "Coupon applied:" %}<strong>{{ cart.coupon.code }}</strong></p>
-        <p>{% trans "Discount:" %}<strong>{{ cart.get_discount|currency }}</strong></p>
-        <p>{% trans "Total after discount:" %}<strong>{{ cart.get_total_price_after_discount|currency }}</strong></p>
+    <div style="margin-top:20px;padding:10px;background:#f7f7f7;border-radius:6px;">
+      <p>{% trans "Coupon applied:" %} <strong>{{ cart.coupon.code }}</strong></p>
+
+      <p>
+          {% trans "Discount:" %}
+          <strong class="coupon-discount">
+              {{ cart.get_discount|currency }}
+          </strong>
+      </p>
+
+      <p>
+          {% trans "Total after discount:" %}
+          <strong class="coupon-total-after">
+              {{ cart.get_total_price_after_discount|currency }}
+          </strong>
+      </p>
     </div>
   {% endif %}
-  <p class="text-right">
+
+  {% if stock_issue %}
+    <div class="cart-danger-box">
+      {% trans "Some items were adjusted or are out of stock. Please review your cart." %}
+    </div>
+  {% endif %}
+
+  <div class="cart-actions">
     <a href="{% url "shop:product_list" %}" class="button light">
       {% trans "Continue shopping" %}
-    </a>  
-  <a href="{% url "orders:order_create" %}" class="button">
-    {% trans "Checkout" %}
-  </a>
-  </p>
+    </a>
+
+    {% if stock_issue %}
+      <button class="button" disabled>
+        {% trans "Checkout" %}
+      </button>
+    {% else %}
+      <a href="{% url "orders:order_create" %}" class="button">
+        {% trans "Checkout" %}
+      </a>
+    {% endif %}
+  </div>
+
+
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Helper: get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + "=")) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie("csrftoken");
+
+  // Update header cart total
+  function updateHeaderTotal(amountString) {
+    const headerTotal = document.getElementById("header-cart-total");
+    if (headerTotal) {
+      headerTotal.textContent = amountString;
+    }
+  
+    const cartTotal = document.getElementById("cart-total");
+    if (cartTotal) {
+      cartTotal.textContent = amountString;
+    }
+  }
+
+  // Handle quantity updates via AJAX
+  document.querySelectorAll("form[action*='cart/add/']").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const url = form.getAttribute("action");
+      const formData = new FormData(form);
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrftoken,
+        },
+        body: formData,
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.ok) {
+          alert(data.error || "Error updating cart.");
+          return;
+        }
+
+        // Find the row for this form
+        const row = form.closest(".cart-row");
+        if (row) {
+          // Update line total cell
+          const lineTotalCell = row.querySelector(".line-total");
+          if (lineTotalCell) {
+            lineTotalCell.textContent = data.line_total;
+          }
+        }
+        // Update header cart total
+        updateHeaderTotal(data.cart_total);
+
+        // Update coupon values if coupon exists
+        if (data.discount !== undefined && data.total_after_discount !== undefined) {
+          const discountEl = document.querySelector(".coupon-discount");
+          const totalAfterEl = document.querySelector(".coupon-total-after");
+
+          if (discountEl) {
+            discountEl.textContent = data.discount;
+          }
+      
+          if (totalAfterEl) {
+            totalAfterEl.textContent = data.total_after_discount;
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Cart update error:", err);
+        alert("Could not update cart. Please try again.");
+      });
+    });
+  });
+
+  // Handle remove via AJAX
+  document.querySelectorAll("form[action*='cart/remove/']").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const url = form.getAttribute("action");
+      const formData = new FormData(form);
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrftoken,
+        },
+        body: formData,
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.ok) {
+          alert("Error removing item from cart.");
+          return;
+        }
+
+        // Remove row from DOM
+        const row = form.closest(".cart-row");
+        if (row) {
+          row.remove();
+        }
+
+        // Update header cart total
+        updateHeaderTotal(data.cart_total);
+
+        // If cart is now empty, you might want to reload or show a message.
+        // For now, do nothing.
+      })
+      .catch((err) => {
+        console.error("Cart remove error:", err);
+        alert("Could not remove item. Please try again.");
+      });
+    });
+  });
+});
+</script>
 {% endblock %}

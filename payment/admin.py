@@ -18,6 +18,7 @@ class PaymentLogAdmin(admin.ModelAdmin):
     list_filter = ("gateway", "action", "success")
     search_fields = ("order__id",)
     readonly_fields = ("created_at",)
+    ordering = ("-created_at",)
 
     # --------------------
     # JALALI CREATED DATE

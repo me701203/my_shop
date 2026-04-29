@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyc
+*.pyd
 
 # Virtual environments
 venv/
@@ -38,3 +39,6 @@ Thumbs.db
 
 media/
 staticfiles/
+
+# Celery
+celerybeat-schedule*

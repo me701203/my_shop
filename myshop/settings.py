@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     "payment.apps.PaymentConfig",
     "coupon.apps.CouponConfig",
     "myshop.core",
+    "rosetta",
+    "parler",
 ]
 
 MIDDLEWARE = [
@@ -187,6 +189,15 @@ else:
 # Celery
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    "expire-orders-every-minute": {
+        "task": "orders.tasks.expire_reserved_orders",
+        "schedule": crontab(minute="*/1"),
+    },
+}
+
 # -----------------------
 # Payment Gateway Settings
 # -----------------------
@@ -302,3 +313,37 @@ SHOP_LABELS = {
 
 # Default currency symbol (used by PDF generator)
 CURRENCY_SYMBOL = "تومان"
+
+# Temporary Login
+LOGIN_URL = "/admin/login/"
+
+# Rosetta settings to keep it from public
+ROSETTA_REQUIRES_AUTH = True
+ROSETTA_REQUIRES_STAFF = True
+
+# Parler Settings
+PARLER_LANGUAGES = {
+    None: (
+        {"code": "en"},
+        {"code": "fa"},
+    ),
+    "default": {
+        "fallback": "en",
+        "hide_untranslated": False,
+    },
+}
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "orders": {
+            "handlers": ["console"],
+            "level": "INFO",
+        },
+    },
+}

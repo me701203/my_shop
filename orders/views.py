@@ -2,7 +2,14 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.conf import settings
+from django.contrib import messages
+from django.utils.translation import gettext as _
+from django.db import transaction
+from django.db.models import F
+from django.utils import timezone
+from datetime import timedelta
 
+from shop.models import Product, ProductVariant
 from cart.cart import Cart
 from .forms import OrderCreateForm
 from .models import OrderItem, Order
@@ -14,8 +21,11 @@ from shop.recommender import Recommender
 
 def order_create(request):
     """
-    Handles checkout: Saves order, associates gateway, clears cart,
-    triggers Celery task, and redirects to payment.
+    Path A:
+    - Create order
+    - Reserve for 15 minutes
+    - DO NOT deduct stock
+    - Deduct stock only after successful payment
     """
     cart = Cart(request)
 
@@ -23,21 +33,56 @@ def order_create(request):
         form = OrderCreateForm(request.POST)
 
         if form.is_valid():
-            # Get gateway choice from POST, default to 'fake'
+
+            # Revalidate cart stock before creating order
+            if cart.revalidate_stock():
+                messages.error(
+                    request,
+                    _(
+                        "Some items in your cart changed due to limited stock. Please review your cart."
+                    ),
+                )
+                return redirect("cart:cart_detail")
+
             gateway_choice = request.POST.get("gateway", "fake")
             request.session["gateway"] = gateway_choice
 
             order = form.save(commit=False)
             order.payment_method = gateway_choice
 
-            # --- Apply coupon and discount BEFORE saving ---
+            # Apply coupon
             if cart.coupon:
                 order.coupon = cart.coupon
                 order.discount = cart.get_discount()
 
-            order.save()  # <-- must always be saved
+            order.save()
 
-            # --- Create order items ---
+            # ✅ Reserve stock immediately (atomic and safe)
+            with transaction.atomic():
+                for item in cart:
+                    product = Product.objects.select_for_update().get(
+                        pk=item["product"].id
+                    )
+
+                    if product.stock < item["quantity"]:
+                        messages.error(
+                            request,
+                            _(
+                                "Some items are no longer available in the requested quantity."
+                            ),
+                        )
+                        return redirect("cart:cart_detail")
+
+                    # Temporarily reserve stock
+                    product.stock = F("stock") - item["quantity"]
+                    product.save(update_fields=["stock"])
+
+            # ✅ Mark reservation
+            order.reservation_status = Order.ReservationStatus.RESERVED
+            order.reserved_until = timezone.now() + timedelta(minutes=15)
+            order.save(update_fields=["reservation_status", "reserved_until"])
+
+            # Create OrderItems only
             for item in cart:
                 OrderItem.objects.create(
                     order=order,
@@ -46,31 +91,18 @@ def order_create(request):
                     quantity=item["quantity"],
                 )
 
-            # update product recommendations
-            recommender = Recommender()
-            recommender.products_bought([item["product"] for item in cart])
-
-            # --- Increase coupon usage ---
+            # Increase coupon usage
             if cart.coupon:
                 cart.coupon.uses += 1
                 cart.coupon.save()
 
-            # --- Clear coupon from session ---
             request.session["coupon_id"] = None
-
-            # Clear the cart session
             cart.clear()
 
-            # Send invoice email (Celery async)
-            send_invoice_email_task.delay(order.id)
-
-            # Launch asynchronous task (Celery)
-            order_created.delay(order.id)
-
-            # Store order_id for the payment process
             request.session["order_id"] = order.id
 
             return redirect(reverse("payment:process", args=[order.id]))
+
     else:
         form = OrderCreateForm()
 

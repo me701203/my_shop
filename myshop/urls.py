@@ -11,6 +11,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("set-digits/", views.set_digits, name="set_digits"),
+    path("rosetta/", include("rosetta.urls")),
 ]
 
 urlpatterns += i18n_patterns(

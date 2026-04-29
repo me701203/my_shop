@@ -8,90 +8,146 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-23 21:05+0330\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2026-04-27 21:07+0330\n"
+"PO-Revision-Date: 2026-04-27 21:04+0000\n"
+"Last-Translator:   <>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Translated-Using: django-rosetta 0.10.3\n"
 
-#: .\cart\templates\cart\detail.html:8 .\cart\templates\cart\detail.html:12
+#: .\cart\templates\cart\detail.html:8 .\cart\templates\cart\detail.html:93
 msgid "Your shopping cart"
 msgstr "سبد خرید شما"
 
-#: .\cart\templates\cart\detail.html:16
+#: .\cart\templates\cart\detail.html:76
+msgid "Some quantities were adjusted due to stock changes:"
+msgstr "به دلیل تغییر موجودی، تعداد برخی از کالاها اصلاح شد:"
+
+#: .\cart\templates\cart\detail.html:84
+#, python-format
+msgid ""
+"\n"
+"                    adjusted from %(old)s to %(new)s.\n"
+"                    "
+msgstr ""
+"\n"
+"از %(old)s به %(new)s تغییر داده شد."
+
+#: .\cart\templates\cart\detail.html:97 .\shop\admin.py:84
 msgid "Image"
 msgstr "تصویر"
 
-#: .\cart\templates\cart\detail.html:17
+#: .\cart\templates\cart\detail.html:98
 msgid "Product"
 msgstr "محصول"
 
-#: .\cart\templates\cart\detail.html:18
+#: .\cart\templates\cart\detail.html:99
 msgid "Quantity"
 msgstr "تعداد"
 
-#: .\cart\templates\cart\detail.html:19 .\cart\templates\cart\detail.html:45
+#: .\cart\templates\cart\detail.html:100 .\cart\templates\cart\detail.html:186
 msgid "Remove"
 msgstr "حذف"
 
-#: .\cart\templates\cart\detail.html:20
+#: .\cart\templates\cart\detail.html:101
 msgid "Unit price"
 msgstr "قیمت واحد"
 
-#: .\cart\templates\cart\detail.html:21
-#: .\shop\templates\shop\product\detail.html:25
+#: .\cart\templates\cart\detail.html:102
+#: .\shop\templates\shop\product\detail.html:50
 msgid "Price"
 msgstr "قیمت"
 
-#: .\cart\templates\cart\detail.html:39
+#: .\cart\templates\cart\detail.html:128
+msgid "Size"
+msgstr "سایز"
+
+#: .\cart\templates\cart\detail.html:131
+msgid "Color"
+msgstr "رنگ"
+
+#: .\cart\templates\cart\detail.html:140 .\cart\templates\cart\detail.html:151
+msgid "Out of stock"
+msgstr "ناموجود"
+
+#: .\cart\templates\cart\detail.html:142 .\cart\templates\cart\detail.html:153
+#, python-format
+msgid "only %(n)s left"
+msgstr "فقط %(n)s عدد باقی مانده"
+
+#: .\cart\templates\cart\detail.html:144 .\cart\templates\cart\detail.html:155
+msgid "0 left"
+msgstr "موجودی صفر"
+
+#: .\cart\templates\cart\detail.html:174
 msgid "Update"
 msgstr "به‌روزرسانی"
 
-#: .\cart\templates\cart\detail.html:55
+#: .\cart\templates\cart\detail.html:197
 msgid "Total"
 msgstr "جمع"
 
-#: .\cart\templates\cart\detail.html:64
+#: .\cart\templates\cart\detail.html:207
 msgid "Have a coupon?"
 msgstr "کد تخفیف دارید؟"
 
-#: .\cart\templates\cart\detail.html:65
+#: .\cart\templates\cart\detail.html:208
 msgid "Apply"
 msgstr "اعمال"
 
-#: .\cart\templates\cart\detail.html:69
+#: .\cart\templates\cart\detail.html:212
 msgid "Coupon applied:"
 msgstr "کد تخفیف اعمال شد:"
 
-#: .\cart\templates\cart\detail.html:70
+#: .\cart\templates\cart\detail.html:215
 msgid "Discount:"
 msgstr "تخفیف"
 
-#: .\cart\templates\cart\detail.html:71
+#: .\cart\templates\cart\detail.html:222
 msgid "Total after discount:"
 msgstr "مبلغ پس از تخفیف"
 
-#: .\cart\templates\cart\detail.html:76
+#: .\cart\templates\cart\detail.html:232
 msgid "Continue shopping"
 msgstr "ادامه خرید"
 
-#: .\cart\templates\cart\detail.html:79
+#: .\cart\templates\cart\detail.html:237
+msgid "Some items were adjusted or are out of stock. Please review your cart."
+msgstr ""
+"برخی از کالاهای سبد خرید شما اصلاح شده یا موجود نیستند. لطفاً سبد خرید را "
+"بررسی کنید."
+
+#: .\cart\templates\cart\detail.html:240 .\cart\templates\cart\detail.html:244
 #: .\orders\templates\orders\order\create.html:7
 #: .\orders\templates\orders\order\create.html:11
 msgid "Checkout"
 msgstr "ثبت سفارش"
+
+#: .\cart\views.py:37
+msgid "Invalid variant selected."
+msgstr "تنوع انتخاب‌شده نامعتبر است."
+
+#: .\cart\views.py:43
+msgid "Not enough stock for this variant."
+msgstr "موجودی این تنوع کافی نیست."
+
+#: .\cart\views.py:47
+msgid "Not enough stock available for this variant."
+msgstr "موجودی کافی برای این تنوع وجود ندارد."
+
+#: .\cart\views.py:59
+msgid "Not enough stock available."
+msgstr "موجودی کافی وجود ندارد."
 
 #: .\coupon\admin.py:18 .\coupon\models.py:86
 #: .\orders\templates\orders\order\create.html:30
 #: .\payment\templates\payment\payment_status.html:46
 #: .\payment\templates\payment\payment_status.html:77
 #: .\payment\templates\payment\payment_status.html:98
-#, fuzzy
-#| msgid "Discount:"
 msgid "Discount"
 msgstr "تخفیف"
 
@@ -116,14 +172,10 @@ msgid "valid to"
 msgstr "معتبر تا"
 
 #: .\coupon\models.py:22
-#, fuzzy
-#| msgid "Discount:"
 msgid "discount type"
 msgstr "نوع تخفیف"
 
 #: .\coupon\models.py:26
-#, fuzzy
-#| msgid "Discount:"
 msgid "discount value"
 msgstr "مقدار تخفیف"
 
@@ -159,25 +211,62 @@ msgstr "در صورت خالی بودن، کد تخفیف برای همه کار
 msgid "active"
 msgstr "فعال"
 
-#: .\coupon\models.py:66 .\orders\models.py:23 .\shop\models.py:38
+#: .\coupon\models.py:66 .\orders\models.py:25 .\shop\models.py:74
 msgid "created"
 msgstr "ایجاد شده"
 
-#: .\coupon\models.py:67 .\orders\models.py:24 .\shop\models.py:39
-#, fuzzy
-#| msgid "Update"
+#: .\coupon\models.py:67 .\orders\models.py:26 .\shop\models.py:75
 msgid "updated"
 msgstr "به‌روزرسانی شده"
 
-#: .\coupon\models.py:75 .\orders\models.py:77
-#, fuzzy
-#| msgid "Have a coupon?"
+#: .\coupon\models.py:75 .\orders\models.py:79
 msgid "coupon"
 msgstr "کد تخفیف"
 
 #: .\coupon\models.py:76
 msgid "coupons"
 msgstr "کدهای تخفیف"
+
+#: .\coupon\views.py:18
+msgid "Please enter a valid coupon code."
+msgstr "لطفاً یک کد تخفیف معتبر وارد کنید."
+
+#: .\coupon\views.py:27
+msgid "This coupon does not exist."
+msgstr "این کد تخفیف وجود ندارد."
+
+#: .\coupon\views.py:32
+msgid "This coupon is not active."
+msgstr "این کد تخفیف فعال نیست."
+
+#: .\coupon\views.py:37
+msgid "This coupon is not valid yet."
+msgstr "این کد تخفیف هنوز فعال نشده است."
+
+#: .\coupon\views.py:41
+msgid "This coupon has expired."
+msgstr "این کد تخفیف منقضی شده است."
+
+#: .\coupon\views.py:46
+msgid "This coupon has reached its usage limit."
+msgstr "این کد تخفیف به حداکثر تعداد استفاده رسیده است."
+
+#: .\coupon\views.py:52
+msgid "You must be logged in to use this coupon."
+msgstr "برای استفاده از این کد تخفیف باید وارد حساب کاربری خود شوید."
+
+#: .\coupon\views.py:56
+msgid "You are not allowed to use this coupon."
+msgstr "شما مجاز به استفاده از این کد تخفیف نیستید."
+
+#: .\coupon\views.py:66
+#, python-format
+msgid "Your order total must be at least %(amount)s to use this coupon."
+msgstr "برای استفاده از این کد تخفیف، مبلغ سفارش باید حداقل %(amount)s باشد."
+
+#: .\coupon\views.py:78
+msgid "Coupon applied successfully."
+msgstr "کد تخفیف با موفقیت اعمال شد."
 
 #: .\orders\admin.py:23
 #, python-format
@@ -209,8 +298,6 @@ msgid "Address"
 msgstr "آدرس"
 
 #: .\orders\admin.py:118
-#, fuzzy
-#| msgid "Payment Method"
 msgid "Payment Information"
 msgstr "اطلاعات پرداخت"
 
@@ -223,14 +310,10 @@ msgid "Timestamps"
 msgstr "زمان‌ها"
 
 #: .\orders\admin.py:146
-#, fuzzy
-#| msgid "Total after discount:"
 msgid "Total (after discount)"
-msgstr "مبلغ پس از تخفیف"
+msgstr "مبلغ (پس از تخفیف)"
 
 #: .\orders\admin.py:169
-#, fuzzy
-#| msgid "Payment Method"
 msgid "Payment"
 msgstr "پرداخت"
 
@@ -266,116 +349,100 @@ msgstr "کد پستی"
 msgid "City"
 msgstr "شهر"
 
-#: .\orders\models.py:10
+#: .\orders\models.py:12
 msgid "Pending"
 msgstr "در انتظار"
 
-#: .\orders\models.py:11
+#: .\orders\models.py:13
 msgid "Success"
 msgstr "موفق"
 
-#: .\orders\models.py:12
+#: .\orders\models.py:14
 msgid "Failed"
 msgstr "ناموفق"
 
-#: .\orders\models.py:13
+#: .\orders\models.py:15
 msgid "Cancelled"
 msgstr "لغو شده"
 
-#: .\orders\models.py:15
+#: .\orders\models.py:17
 msgid "first name"
 msgstr "نام"
 
-#: .\orders\models.py:16
+#: .\orders\models.py:18
 msgid "last name"
 msgstr "نام خانوادگی"
 
-#: .\orders\models.py:17
+#: .\orders\models.py:19
 msgid "email"
 msgstr "ایمیل"
 
-#: .\orders\models.py:19
+#: .\orders\models.py:21
 msgid "address"
 msgstr "آدرس"
 
-#: .\orders\models.py:20
+#: .\orders\models.py:22
 msgid "postal code"
 msgstr "کد پستی"
 
-#: .\orders\models.py:21
+#: .\orders\models.py:23
 msgid "city"
 msgstr "شهر"
 
-#: .\orders\models.py:26
+#: .\orders\models.py:28
 msgid "paid"
 msgstr "پرداخت شده"
 
-#: .\orders\models.py:27
+#: .\orders\models.py:29
 msgid "paid at"
 msgstr "زمان پرداخت"
 
-#: .\orders\models.py:30
-#, fuzzy
-#| msgid "Payment Method"
+#: .\orders\models.py:32
 msgid "payment method"
 msgstr "روش پرداخت"
 
-#: .\orders\models.py:34
+#: .\orders\models.py:36
 msgid "payment status"
 msgstr "وضعیت پرداخت"
 
-#: .\orders\models.py:41
-#, fuzzy
-#| msgid "Payment Method"
+#: .\orders\models.py:43
 msgid "payment authority"
 msgstr "کد پیگیری پرداخت"
 
-#: .\orders\models.py:44
+#: .\orders\models.py:46
 msgid "payment reference ID"
 msgstr "شناسه مرجع پرداخت"
 
-#: .\orders\models.py:49 .\orders\models.py:90
-#, fuzzy
-#| msgid "Your order"
+#: .\orders\models.py:51 .\orders\models.py:98
 msgid "order"
 msgstr "سفارش"
 
-#: .\orders\models.py:50
-#, fuzzy
-#| msgid "Your order"
+#: .\orders\models.py:52
 msgid "orders"
 msgstr "سفارش‌ها"
 
-#: .\orders\models.py:56
+#: .\orders\models.py:58
 #, python-format
 msgid "Order %(id)s"
 msgstr "سفارش %(id)s"
 
-#: .\orders\models.py:72
+#: .\orders\models.py:74
 msgid "Logs"
 msgstr "گزارش‌ها"
 
-#: .\orders\models.py:84
-#, fuzzy
-#| msgid "Discount:"
+#: .\orders\models.py:87
 msgid "discount"
 msgstr "تخفیف"
 
-#: .\orders\models.py:96 .\shop\models.py:48
-#, fuzzy
-#| msgid "Product"
+#: .\orders\models.py:104 .\shop\models.py:97 .\shop\models.py:190
 msgid "product"
 msgstr "محصول"
 
-#: .\orders\models.py:101 .\shop\models.py:36
-#, fuzzy
-#| msgid "Price"
+#: .\orders\models.py:110 .\shop\models.py:68
 msgid "price"
 msgstr "قیمت"
 
-#: .\orders\models.py:102
-#, fuzzy
-#| msgid "Quantity"
+#: .\orders\models.py:115
 msgid "quantity"
 msgstr "تعداد"
 
@@ -385,8 +452,6 @@ msgstr "سفارش شما"
 
 #: .\orders\templates\orders\order\create.html:23
 #: .\payment\templates\payment\payment_status.html:49
-#, fuzzy
-#| msgid "Total after discount:"
 msgid "Total amount"
 msgstr "مبلغ کل"
 
@@ -394,16 +459,12 @@ msgstr "مبلغ کل"
 #: .\payment\templates\payment\payment_status.html:45
 #: .\payment\templates\payment\payment_status.html:76
 #: .\payment\templates\payment\payment_status.html:97
-#, fuzzy
-#| msgid "Have a coupon?"
 msgid "Coupon"
 msgstr "کد تخفیف"
 
 #: .\orders\templates\orders\order\create.html:35
 #: .\payment\templates\payment\payment_status.html:78
 #: .\payment\templates\payment\payment_status.html:99
-#, fuzzy
-#| msgid "Fixed amount"
 msgid "Final amount"
 msgstr "مبلغ نهایی"
 
@@ -424,65 +485,58 @@ msgstr "سپاسگزاریم"
 msgid "Your order has been successfully completed. Your order number is"
 msgstr "سفارش شما با موفقیت ثبت شد. شماره سفارش شما"
 
-#: .\payment\templates\payment\fake_bank.html:6
-#: .\payment\templates\payment\fake_bank.html:11
+#: .\orders\views.py:56
+msgid ""
+"Some items in your cart are no longer in stock. Please review your cart."
+msgstr ""
+"برخی از کالاهای موجود در سبد خرید شما دیگر موجود نیستند. لطفاً سبد خرید را "
+"بررسی کنید."
+
+#: .\payment\templates\payment\fake_bank.html:7
+#: .\payment\templates\payment\fake_bank.html:12
 msgid "Test Payment Gateway"
 msgstr "درگاه پرداخت آزمایشی"
 
-#: .\payment\templates\payment\fake_bank.html:14
+#: .\payment\templates\payment\fake_bank.html:15
 msgid "Amount"
 msgstr "مبلغ"
 
-#: .\payment\templates\payment\fake_bank.html:20
+#: .\payment\templates\payment\fake_bank.html:21
 msgid "Select payment result"
 msgstr "نتیجه پرداخت را انتخاب کنید"
 
-#: .\payment\templates\payment\fake_bank.html:22
+#: .\payment\templates\payment\fake_bank.html:23
 msgid "Successful payment"
 msgstr "پرداخت موفق"
 
-#: .\payment\templates\payment\fake_bank.html:23
-#, fuzzy
-#| msgid "Cancelled"
+#: .\payment\templates\payment\fake_bank.html:24
 msgid "Cancel payment"
 msgstr "لغو پرداخت"
 
-#: .\payment\templates\payment\fake_bank.html:28
-#, fuzzy
-#| msgid "Continue shopping"
+#: .\payment\templates\payment\fake_bank.html:29
 msgid "Continue"
 msgstr "ادامه"
 
 #: .\payment\templates\payment\payment_status.html:8
 #: .\payment\templates\payment\payment_status.html:37
-#, fuzzy
-#| msgid "payment status"
 msgid "Payment successful"
 msgstr "پرداخت با موفقیت انجام شد"
 
 #: .\payment\templates\payment\payment_status.html:10
 #: .\payment\templates\payment\payment_status.html:63
-#, fuzzy
-#| msgid "Payment Method"
 msgid "Payment failed"
 msgstr "پرداخت ناموفق بود"
 
 #: .\payment\templates\payment\payment_status.html:12
 #: .\payment\templates\payment\payment_status.html:90
-#, fuzzy
-#| msgid "Payment Method"
 msgid "Payment cancelled"
 msgstr "پرداخت لغو شد"
 
 #: .\payment\templates\payment\payment_status.html:14
-#, fuzzy
-#| msgid "payment status"
 msgid "Payment status"
 msgstr "وضعیت پرداخت"
 
 #: .\payment\templates\payment\payment_status.html:42
-#, fuzzy
-#| msgid "Order item"
 msgid "Order ID"
 msgstr "شناسه سفارش"
 
@@ -521,73 +575,137 @@ msgstr "وضعیت نامشخص"
 msgid "Please contact support."
 msgstr "لطفاً با پشتیبانی تماس بگیرید."
 
-#: .\shop\models.py:7 .\shop\models.py:32
-msgid "name"
-msgstr "نام"
+#: .\payment\views.py:43
+#, python-format
+msgid "Payment error: %(error)s"
+msgstr "خطای پرداخت: %(error)s"
 
-#: .\shop\models.py:8 .\shop\models.py:33
+#: .\payment\views.py:120
+msgid "Invalid payment callback."
+msgstr "بازگشت نامعتبر از درگاه پرداخت."
+
+#: .\shop\admin.py:54
+msgid "Media"
+msgstr "رسانه"
+
+#: .\shop\admin.py:55
+msgid "Description"
+msgstr "توضیحات"
+
+#: .\shop\admin.py:57
+msgid "SEO"
+msgstr "سئو"
+
+#: .\shop\models.py:13 .\shop\models.py:65
 msgid "slug"
 msgstr "اسلاگ"
 
-#: .\shop\models.py:15 .\shop\models.py:30
-#, fuzzy
-#| msgid "Categories"
+#: .\shop\models.py:16 .\shop\models.py:59
+msgid "name"
+msgstr "نام"
+
+#: .\shop\models.py:20 .\shop\models.py:55
 msgid "category"
 msgstr "دسته‌بندی"
 
-#: .\shop\models.py:16
-#, fuzzy
-#| msgid "Categories"
+#: .\shop\models.py:21
 msgid "categories"
 msgstr "دسته‌بندی‌ها"
 
-#: .\shop\models.py:34
-#, fuzzy
-#| msgid "Image"
-msgid "image"
-msgstr "تصویر"
-
-#: .\shop\models.py:35
+#: .\shop\models.py:60
 msgid "description"
 msgstr "توضیحات"
 
-#: .\shop\models.py:37
+#: .\shop\models.py:62
+msgid "image alt text"
+msgstr "متن جایگزین تصویر"
+
+#: .\shop\models.py:66
+msgid "image"
+msgstr "تصویر"
+
+#: .\shop\models.py:73
 msgid "available"
 msgstr "موجود"
 
-#: .\shop\models.py:49
-#, fuzzy
-#| msgid "Products"
+#: .\shop\models.py:98
 msgid "products"
 msgstr "محصولات"
 
-#: .\shop\templates\shop\base.html:10 .\shop\templates\shop\base.html:25
+#: .\shop\models.py:193
+msgid "size"
+msgstr "اندازه"
+
+#: .\shop\models.py:194
+msgid "color"
+msgstr "رنگ"
+
+#: .\shop\models.py:197
+msgid "price override"
+msgstr "قیمت اختصاصی"
+
+#: .\shop\models.py:202
+msgid "Optional variant-specific price"
+msgstr "قیمت اختصاصی برای این تنوع (اختیاری)"
+
+#: .\shop\models.py:205
+msgid "stock"
+msgstr "موجودی"
+
+#: .\shop\models.py:208
+msgid "product variant"
+msgstr "تنوع محصول"
+
+#: .\shop\models.py:209
+msgid "product variants"
+msgstr "تنوع‌های محصول"
+
+#: .\shop\templates\shop\base.html:40 .\shop\templates\shop\base.html:55
 msgid "My shop"
 msgstr "فروشگاه من"
 
-#: .\shop\templates\shop\base.html:47
-#, fuzzy
-#| msgid "Your shopping cart"
+#: .\shop\templates\shop\base.html:65
+msgid "English"
+msgstr "انگلیسی"
+
+#: .\shop\templates\shop\base.html:66
+msgid "Persian"
+msgstr "فارسی"
+
+#: .\shop\templates\shop\base.html:75
 msgid "Your cart"
-msgstr "سبد خرید"
+msgstr "سبد خرید شما"
 
-#: .\shop\templates\shop\base.html:50
+#: .\shop\templates\shop\base.html:81
 msgid "Your cart is empty."
-msgstr "سبد خرید شما خالی است"
+msgstr "سبد خرید شما خالی است."
 
-#: .\shop\templates\shop\product\detail.html:32
-#, fuzzy
-#| msgid "Your shopping cart"
+#: .\shop\templates\shop\product\detail.html:38
+#: .\shop\templates\shop\product\detail.html:135
+#: .\shop\templates\shop\product\list.html:30
+msgid "No image available"
+msgstr "بدون تصویر"
+
+#: .\shop\templates\shop\product\detail.html:52
+#: .\shop\templates\shop\product\detail.html:54
+msgid "From"
+msgstr "از"
+
+#: .\shop\templates\shop\product\detail.html:76
+msgid "Choose variant"
+msgstr "انتخاب تنوع"
+
+#: .\shop\templates\shop\product\detail.html:80
+msgid "Select an option"
+msgstr "یک گزینه انتخاب کنید"
+
+#: .\shop\templates\shop\product\detail.html:118
 msgid "Add to cart"
 msgstr "افزودن به سبد خرید"
 
-#: .\shop\templates\shop\product\detail.html:37
+#: .\shop\templates\shop\product\detail.html:125
 msgid "Customers who bought this also bought:"
 msgstr "مشتریانی که این محصول را خریده‌اند، این محصولات را نیز خریده‌اند:"
-
-#: .\shop\templates\shop\product\detail.html:47
-msgid "No image"
-msgstr "بدون تصویر"
 
 #: .\shop\templates\shop\product\list.html:7
 #: .\shop\templates\shop\product\list.html:25
@@ -601,3 +719,14 @@ msgstr "دسته‌بندی‌ها"
 #: .\shop\templates\shop\product\list.html:15
 msgid "All"
 msgstr "همه"
+
+#: .\shop\views.py:62
+msgid "This product is out of stock."
+msgstr "این محصول ناموجود است."
+
+#: .\shop\views.py:91
+msgid "invalid mode"
+msgstr "حالت نامعتبر"
+
+#~ msgid "No image"
+#~ msgstr "بدون تصویر"

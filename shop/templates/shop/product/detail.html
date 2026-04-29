@@ -8,10 +8,35 @@
 {% endblock %}
 
 {% block content %}
+  <style>
+
+    .toast{
+      position:fixed;
+      bottom:30px;
+      right:30px;
+      background:#333;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:6px;
+      opacity:0;
+      transform:translateY(20px);
+      transition:all .3s ease;
+      z-index:9999;
+    }
+    
+    .toast.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+  
+  </style>
+  
+
   <div class="product-detail">
     <img src="{% if product.image %}{{ product.image.url }}{% else %}
       {% static "img/no_image.png" %}{% endif %}"
-    />
+        alt="{% if product.image %}{{ product.image_alt|default:product.name }}{% else %}{% trans 'No image available' %}{% endif %}">
+
 
     <h1>{{ product.name }}</h1>
 
@@ -23,14 +48,77 @@
 
     <p class="price">
       {% trans "Price" %}:
-      {{ product.price|currency }}
+      <span id="product-price"
+            data-base-price="{% if product.variants.exists %}{% trans 'From' %} {{ product.price|currency }}{% else %}{{ product.price|currency }}{% endif %}">
+        {% if product.variants.exists %}
+            {% trans "From" %} {{ product.price|currency }}
+        {% else %}
+            {{ product.price|currency }}
+        {% endif %}
+      </span>
     </p>
+    
 
-    <form action="{% url 'cart:cart_add' product.id %}" method="post">
-      {{ cart_product_form }}
+    <p id="variant-stock-label" style="color:#666; font-size:14px;"></p>
+    
+    
+    <form id="add-to-cart-form" action="{% url 'cart:cart_add' product.id %}" method="post">
       {% csrf_token %}
-      <input type="submit" value="{% trans 'Add to cart' %}">
+    
+      {# Quantity + override (from the form) #}
+      {{ cart_product_form.quantity }}
+      {{ cart_product_form.override }}
+    
+      {# Variant selector: only if there are variants #}
+      {% if product.variants.exists %}
+        <div class="variant-selector">
+          <label for="id_variant_id">
+            {% trans "Choose variant" %}:
+          </label>
+
+          <select name="variant_id" id="id_variant_id" required>
+            <option value="">{% trans "Select an option" %}</option>
+
+            {% for variant in product.variants.all %}
+                <option 
+                  value="{{ variant.id }}"
+                  data-price="{{ variant.get_price }}"
+                  data-price-display="{{ variant.get_price|currency }}"
+                  data-stock="{{ variant.stock }}"
+                  {% if variant.stock == 0 %}disabled{% endif %}
+                >
+            
+
+                  {# Build readable label: "Size M / Blue — €120" or "Blue — €80" #}
+                  {% if variant.size %}
+                    {{ variant.size }}
+                  {% endif %}
+
+                  {% if variant.size and variant.color %}
+                    /
+                  {% endif %}
+
+                  {% if variant.color %}
+                    {{ variant.color }}
+                  {% endif %}
+
+                  — {{ variant.get_price|currency }}
+                </option>
+            {% endfor %}
+          </select>
+        </div>
+
+      {% else %}
+        {# No variants → required field still exists but stays empty #}
+        <input type="hidden" name="variant_id" value="">
+      {% endif %}
+
+    
+      <button type="submit" id="add-to-cart-btn">
+        {% trans "Add to cart" %}
+      </button>      
     </form>
+    
 
     {{ product.description|linebreaks }}
 
@@ -42,9 +130,9 @@
         <a href="{{ p.get_absolute_url }}">
           <div class="recommended-image">
             {% if p.image %}
-              <img src="{{ p.image.url }}" alt="{{ p.name }}">
+              <img src="{{ p.image.url }}" alt="{{ p.image_alt|default:p.name }}">
             {% else %}
-              <img src="/static/img/no_image.png" alt="{% trans 'No image' %}">
+              <img src="/static/img/no_image.png" alt="{% trans 'No image available' %}">
             {% endif %}
           </div>
           <p class="recommended-title">{{ p.name }}</p>
@@ -52,4 +140,153 @@
       </div>
     {% endfor %}
   </div>
+  <div id="toast" class="toast"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+
+      const variantSelect = document.getElementById("id_variant_id");
+      const priceEl = document.getElementById("product-price");
+      const stockLabel = document.getElementById("variant-stock-label");
+      const basePriceDisplay = priceEl.dataset.basePrice || priceEl.textContent;
+
+
+      if(variantSelect){
+
+        variantSelect.addEventListener("change", function(){
+
+          const selected = this.options[this.selectedIndex];
+        
+          const priceDisplay = selected.dataset.priceDisplay;
+          const stockRaw = selected.dataset.stock;
+          const stock = stockRaw !== undefined ? parseInt(stockRaw, 10) : null;
+        
+          // Update price if we have a display value
+          if(priceDisplay){
+            priceEl.textContent = priceDisplay;
+          } else {
+            // No variant selected (placeholder), reset back to base product price
+            priceEl.textContent = basePriceDisplay;
+            // Note: if this line is too complex we can simplify below
+          }
+        
+          // Stock label behaviour
+          if(stock === null || isNaN(stock)){
+            // Placeholder selected → clear label or show default
+            stockLabel.textContent = "";
+            stockLabel.style.color = "#666";
+            return;
+          }
+        
+          if(stock === 0){
+            stockLabel.textContent = "Out of stock";
+            stockLabel.style.color = "red";
+          }
+          else if(stock <= 3){
+            stockLabel.textContent = "Only " + stock + " left";
+            stockLabel.style.color = "#e67e22";
+          }
+          else{
+            stockLabel.textContent = "In stock";
+            stockLabel.style.color = "green";
+          }
+        
+        });        
+      }
+
+    
+      const form = document.getElementById("add-to-cart-form");
+      const toast = document.getElementById("toast");
+    
+      function getCookie(name){
+        let cookieValue = null;
+        if(document.cookie && document.cookie !== ""){
+          const cookies = document.cookie.split(";");
+          for(let i=0;i<cookies.length;i++){
+            const cookie = cookies[i].trim();
+            if(cookie.substring(0,name.length+1)===(name+"=")){
+              cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+    
+      const csrftoken = getCookie("csrftoken");
+    
+      function showToast(message){
+        toast.textContent = message;
+        toast.classList.add("show");
+    
+        setTimeout(()=>{
+          toast.classList.remove("show");
+        },2000);
+      }
+    
+      function updateHeaderTotal(amount){
+        const headerTotal = document.getElementById("header-cart-total");
+        if(headerTotal){
+          headerTotal.textContent = amount;
+        }
+      }
+    
+      form.addEventListener("submit", function(e){
+    
+        e.preventDefault();
+    
+        const url = form.getAttribute("action");
+        const formData = new FormData(form);
+
+        const selectedVariantOption = variantSelect ? variantSelect.options[variantSelect.selectedIndex] : null;
+        const selectedQuantityInput = document.getElementById('id_quantity'); // Assuming your quantity input has this ID
+        const currentStock = selectedVariantOption ? parseInt(selectedVariantOption.dataset.stock, 10) : null;
+        const requestedQuantity = parseInt(selectedQuantityInput.value, 10);
+
+        if (currentStock !== null && !isNaN(currentStock) && requestedQuantity > currentStock) {
+            // Not enough stock
+            showToast(`Not enough stock. Only ${currentStock} available.`);
+            return; // Prevent submission
+        }
+    
+        fetch(url,{
+          method:"POST",
+          headers:{
+            "X-Requested-With":"XMLHttpRequest",
+            "X-CSRFToken":csrftoken
+          },
+          body:formData
+        })
+        .then(res=>res.json())
+        .then(data=>{
+    
+          if(!data.ok){
+            // Handle errors, e.g., "Not enough stock" from server
+            showToast(data.error || "Error adding to cart");
+            // If the server error is "Not enough stock", you might want to update the stock label here too
+            return;
+          }
+          
+          // Update header total
+          updateHeaderTotal(data.cart_total);
+          // Show success toast
+          showToast("✅ Added to cart");
+
+          if (variantSelect && selectedVariantOption) {
+            const updatedStock = data.updated_variant_stock; // Assuming server sends this
+            if (updatedStock !== undefined) {
+                selectedVariantOption.dataset.stock = updatedStock; // Update the data attribute
+                // Manually trigger the change event to update the label
+                variantSelect.dispatchEvent(new Event('change'));
+            }
+        }
+    
+        })
+        .catch(()=>{
+          showToast("Server error");
+        });
+    
+      });
+    
+    });
+  </script>    
 {% endblock %}

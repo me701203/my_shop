@@ -86,6 +86,10 @@ class OrderAdmin(admin.ModelAdmin):
         "payment_status_display",
         "payment_method",
         "payment_ref_id",
+        "payment_reference",
+        "reservation_status",
+        "reserved_until",
+        "fulfillment_status",
         "total_after_discount",
         "coupon",
         "discount",
@@ -93,7 +97,13 @@ class OrderAdmin(admin.ModelAdmin):
         "created_jalali",
     ]
 
-    list_filter = ["payment_status", "payment_method", "created"]
+    list_filter = [
+        "payment_status",
+        "payment_method",
+        "reservation_status",
+        "fulfillment_status",
+        "created",
+    ]
     actions = [export_to_csv, send_invoice]
     inlines = [OrderItemInline]
 
@@ -103,6 +113,9 @@ class OrderAdmin(admin.ModelAdmin):
         "total_after_discount",
         "created",
         "updated",
+        "reservation_status",
+        "reserved_until",
+        "payment_reference",
     ]
 
     fieldsets = (
@@ -115,6 +128,15 @@ class OrderAdmin(admin.ModelAdmin):
             {"fields": ("address", "postal_code", "city")},
         ),
         (
+            _("Reservation Status"),
+            {
+                "fields": (
+                    "reservation_status",
+                    "reserved_until",
+                ),
+            },
+        ),
+        (
             _("Payment Information"),
             {
                 "fields": (
@@ -122,7 +144,7 @@ class OrderAdmin(admin.ModelAdmin):
                     "payment_status",
                     "payment_authority",
                     "payment_ref_id",
-                    "payment_log_count",
+                    "payment_reference",
                 ),
             },
         ),
@@ -136,6 +158,12 @@ class OrderAdmin(admin.ModelAdmin):
             _("Timestamps"),
             {
                 "fields": ("created", "updated"),
+            },
+        ),
+        (
+            _("Fulfillment"),
+            {
+                "fields": ("fulfillment_status",),
             },
         ),
     )

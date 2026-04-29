@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.utils.translation import gettext as _
+from django.core.cache import cache
 
 from cart.forms import CartAddProductForm
 from .models import Category, Product
@@ -9,11 +10,40 @@ from .recommender import Recommender
 
 def product_list(request, category_slug=None):
     category = None
-    categories = Category.objects.all()
-    products = Product.objects.filter(available=True)
+
+    # Category sidebar cache
+    categories = cache.get("category_sidebar")
+    if categories is None:
+        # print("CACHE MISS: categories") # debug Verify Category Sidebar Cache
+        categories = list(Category.objects.all().prefetch_related("translations"))
+        cache.set("category_sidebar", categories, timeout=None)
+    # debug Verify Category Sidebar Cache
+    # else:
+    # print("CACHE HIT: categories")
+
+    # Product list cache key
     if category_slug:
-        category = get_object_or_404(Category, slug=category_slug)
-        products = products.filter(category=category)
+        cache_key = f"product_list_category_{category_slug}"
+    else:
+        cache_key = "product_list_all"
+
+    products = cache.get(cache_key)
+
+    if products is None:
+        # print("CACHE MISS:", cache_key)  # debug Verify Product List Cache
+        products = Product.available_items.available()  # Strong availability protection
+
+        if category_slug:
+            category = get_object_or_404(Category, slug=category_slug)
+            products = products.filter(category=category)
+
+        products = list(products.select_related("category"))
+        cache.set(cache_key, products, timeout=None)
+
+    else:
+        if category_slug:
+            category = get_object_or_404(Category, slug=category_slug)
+
     return render(
         request,
         "shop/product/list.html",
@@ -26,7 +56,10 @@ def product_list(request, category_slug=None):
 
 
 def product_detail(request, id, slug):
-    product = get_object_or_404(Product, id=id, slug=slug, available=True)
+    product = get_object_or_404(Product, id=id, slug=slug)
+
+    if not product.is_in_stock():
+        raise Http404(_("This product is out of stock."))
 
     cart_product_form = CartAddProductForm()
 
