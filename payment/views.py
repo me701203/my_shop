@@ -1,19 +1,27 @@
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.urls import reverse
 from django.utils import timezone
-from orders.models import Order
 from django.conf import settings
 from django.utils.translation import gettext as _
 from django.db import transaction
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib import messages
+from django_ratelimit.decorators import ratelimit
+from django.db.models import F
 
 from .gateways.fake import FakeGateway
 from .gateways.zarinpal import ZarinpalGateway
 from .gateways.zibal import ZibalGateway
 
-from payment.models import PaymentLog
+from coupon.models import Coupon
+from orders.models import OrderItem, Order
+from payment.models import Refund, PaymentLog
+from payment.forms import RefundCreateForm
+from payment.services.refund import complete_refund, RefundError
 from shop.models import Product
-from django.db.models import F
-
+from orders.services.events import log_order_event
+from orders.models import OrderEvent
 
 GATEWAYS = {
     "fake": FakeGateway,
@@ -32,6 +40,7 @@ def get_gateway(request):
 # ---------------------------------------------------------
 
 
+@ratelimit(key="ip", rate="10/m", method="POST")
 def payment_process(request, order_id):
 
     order = get_object_or_404(Order, id=order_id)
@@ -83,6 +92,16 @@ def payment_process(request, order_id):
     order.payment_status = Order.PaymentStatus.PENDING
     order.save(update_fields=["payment_method", "payment_authority", "payment_status"])
 
+    log_order_event(
+        order,
+        OrderEvent.EventType.PAYMENT_REQUESTED,
+        "Payment initiated",
+        data={
+            "gateway": order.payment_method,
+            "authority": authority,
+        },
+    )
+
     return redirect(redirect_url)
 
 
@@ -118,12 +137,25 @@ def fake_bank(request, order_id):
 # ---------------------------------------------------------
 
 
+@ratelimit(key="ip", rate="10/m", method="GET")
 def payment_verify(request, order_id):
+
+    # Rate limit check
+    if getattr(request, "limited", False):
+        return HttpResponse("Too many requests. Please try again later.", status=429)
 
     with transaction.atomic():
         order = Order.objects.select_for_update().get(id=order_id)
 
-    # 1. IDEMPOTENCY CHECK
+    # Verify with gateway
+    if order.payment_ref_id:
+        return render(
+            request,
+            "payment/payment_status.html",
+            {"status": "success", "order": order},
+        )
+
+    # 1. IDEMPOTENCY CHECK - Already paid
     if order.payment_status == Order.PaymentStatus.SUCCESS:
         return render(
             request,
@@ -179,13 +211,43 @@ def payment_verify(request, order_id):
     # 4. ANTI-TAMPERING
     authority = gateway.get_authority(request)
     if authority != order.payment_authority:
+        PaymentLog.objects.create(
+            order=order,
+            gateway=order.payment_method,
+            action="verify",
+            request_data={
+                "authority": authority,
+                "expected_authority": order.payment_authority,
+            },
+            success=False,
+            message="Authority tampering detected",
+        )
         return HttpResponse(_("Invalid payment callback."))
 
     # 5. VERIFY WITH GATEWAY
     success, ref_id, error = gateway.verify(request, order)
 
     if success:
-        # Anti-replay
+        # Anti-replay check
+        if (
+            ref_id
+            and Order.objects.filter(payment_ref_id=ref_id)
+            .exclude(id=order.id)
+            .exists()
+        ):
+            PaymentLog.objects.create(
+                order=order,
+                gateway=order.payment_method,
+                action="verify",
+                request_data={
+                    "authority": authority,
+                },
+                response_data={
+                    "ref_id": ref_id,
+                },
+                success=False,
+                message="Anti-replay: ref_id already used",
+            )
         if (
             ref_id
             and Order.objects.filter(payment_ref_id=ref_id)
@@ -228,6 +290,21 @@ def payment_verify(request, order_id):
                     "payment_processing",
                 ]
             )
+
+            # Increment coupon usage only after successful payment
+            if order.coupon_id:  # Use coupon_id to avoid extra query
+                Coupon.objects.filter(pk=order.coupon_id).update(uses=F("uses") + 1)
+
+            log_order_event(
+                order,
+                OrderEvent.EventType.PAYMENT_SUCCESS,
+                "Payment verified successfully",
+                data={
+                    "ref_id": ref_id,
+                    "gateway": order.payment_method,
+                },
+            )
+
             PaymentLog.objects.create(
                 order=order,
                 gateway=order.payment_method,
@@ -247,13 +324,33 @@ def payment_verify(request, order_id):
             {"status": "success", "order": order},
         )
 
-    # 7. FAIL CASE
+    # 7. FAIL CASE - Restore stock
     with transaction.atomic():
         order.payment_status = Order.PaymentStatus.FAILED
         order.reservation_status = Order.ReservationStatus.FAILED
         order.payment_processing = False
         order.save(
             update_fields=["payment_status", "reservation_status", "payment_processing"]
+        )
+
+        # Restore stock immediately on payment failure (variant-aware)
+        for item in order.items.all():
+            if item.variant:
+                from shop.models import ProductVariant
+
+                ProductVariant.objects.filter(pk=item.variant_id).update(
+                    stock=F("stock") + item.quantity
+                )
+            else:
+                Product.objects.filter(pk=item.product_id).update(
+                    stock=F("stock") + item.quantity
+                )
+
+        log_order_event(
+            order,
+            OrderEvent.EventType.PAYMENT_FAILED,
+            "Payment verification failed",
+            data={"error": error},
         )
 
         PaymentLog.objects.create(
@@ -269,4 +366,40 @@ def payment_verify(request, order_id):
 
     return render(
         request, "payment/payment_status.html", {"status": "failure", "error": error}
+    )
+
+
+@staff_member_required
+def create_refund(request, item_id):
+
+    item = get_object_or_404(OrderItem, id=item_id)
+
+    if request.method == "POST":
+        form = RefundCreateForm(request.POST)
+
+        if form.is_valid():
+            refund = form.save(commit=False)
+            refund.order_item = item
+            refund.status = Refund.RefundStatus.APPROVED
+            refund.save()
+
+            try:
+                complete_refund(refund)
+                messages.success(request, "Refund completed successfully")
+
+            except RefundError as e:
+                messages.error(request, str(e))
+
+            return redirect("staff_order_detail", order_id=item.order.id)
+
+    else:
+        form = RefundCreateForm()
+
+    return render(
+        request,
+        "staff/refund_create.html",
+        {
+            "form": form,
+            "item": item,
+        },
     )

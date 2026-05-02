@@ -26,7 +26,7 @@ class ZarinpalGateway(BaseGateway):
             "description": f"Order {order.id}",
         }
 
-        response = requests.post(self.request_url, json=data)
+        response = requests.post(self.request_url, json=data, timeout=10)
         result = response.json()
         self.log(order, "request", data, result)
 
@@ -46,7 +46,7 @@ class ZarinpalGateway(BaseGateway):
             "authority": authority,
         }
 
-        response = requests.post(self.verify_url, json=data)
+        response = requests.post(self.verify_url, json=data, timeout=10)
         result = response.json()
         self.log(order, "verify", data, result)
 

@@ -1,0 +1,17 @@
+<h2>Refund Order Item</h2>
+
+<p>Order: {{ item.order.id }}</p>
+<p>Product: {{ item.product_name }}</p>
+<p>Quantity: {{ item.quantity }}</p>
+<p>Item total: {{ item.get_cost }}</p>
+<p>Original total: {{ item.order.get_original_total }}</p>
+<p>Refunded so far: {{ item.order.get_total_refunded }}</p>
+<p>Remaining refundable: {{ item.order.get_remaining_refundable }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">Process Refund</button>
+</form>
+

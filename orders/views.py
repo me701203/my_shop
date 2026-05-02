@@ -57,44 +57,87 @@ def order_create(request):
 
             order.save()
 
+            from orders.services.events import log_order_event
+            from orders.models import OrderEvent
+
+            log_order_event(
+                order,
+                OrderEvent.EventType.ORDER_CREATED,
+                "Order created by customer",
+            )
+
             # ✅ Reserve stock immediately (atomic and safe)
             with transaction.atomic():
+                # Phase 1: Lock and validate ALL items (variant-aware)
+                items_to_reserve = []
+
                 for item in cart:
-                    product = Product.objects.select_for_update().get(
-                        pk=item["product"].id
-                    )
+                    variant = item.get("variant")
 
-                    if product.stock < item["quantity"]:
-                        messages.error(
-                            request,
-                            _(
-                                "Some items are no longer available in the requested quantity."
-                            ),
+                    if variant:
+                        # Lock variant
+                        variant_obj = ProductVariant.objects.select_for_update().get(
+                            pk=variant.id
                         )
-                        return redirect("cart:cart_detail")
 
-                    # Temporarily reserve stock
-                    product.stock = F("stock") - item["quantity"]
-                    product.save(update_fields=["stock"])
+                        if variant_obj.stock < item["quantity"]:
+                            messages.error(
+                                request,
+                                _("Insufficient stock for %(product)s (%(variant)s)")
+                                % {
+                                    "product": item["product"].name,
+                                    "variant": str(variant_obj),
+                                },
+                            )
+                            return redirect("cart:cart_detail")
+
+                        items_to_reserve.append(
+                            ("variant", variant_obj, item["quantity"])
+                        )
+                    else:
+                        # Lock product
+                        product = Product.objects.select_for_update().get(
+                            pk=item["product"].id
+                        )
+
+                        if product.stock < item["quantity"]:
+                            messages.error(
+                                request,
+                                _("Insufficient stock for %(product)s")
+                                % {"product": product.name},
+                            )
+                            return redirect("cart:cart_detail")
+
+                        items_to_reserve.append(("product", product, item["quantity"]))
+
+                # Phase 2: Deduct stock only if ALL items passed
+                for item_type, obj, quantity in items_to_reserve:
+                    obj.stock = F("stock") - quantity
+                    obj.save(update_fields=["stock"])
 
             # ✅ Mark reservation
             order.reservation_status = Order.ReservationStatus.RESERVED
             order.reserved_until = timezone.now() + timedelta(minutes=15)
             order.save(update_fields=["reservation_status", "reserved_until"])
 
+            log_order_event(
+                order,
+                OrderEvent.EventType.STOCK_RESERVED,
+                "Stock reserved for order",
+                data={
+                    "reserved_until": order.reserved_until.isoformat(),
+                },
+            )
+
             # Create OrderItems only
             for item in cart:
                 OrderItem.objects.create(
                     order=order,
                     product=item["product"],
+                    product_name=item["product"].name,
                     price=item["price"],
                     quantity=item["quantity"],
                 )
-
-            # Increase coupon usage
-            if cart.coupon:
-                cart.coupon.uses += 1
-                cart.coupon.save()
 
             request.session["coupon_id"] = None
             cart.clear()

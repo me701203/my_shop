@@ -1,14 +1,17 @@
 import csv
 import datetime
+import jdatetime
+
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import reverse, path
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-from .models import Order, OrderItem
+from orders.services.events import log_order_event
+
+from .models import Order, OrderItem, Shipment, OrderEvent
 from .views import admin_order_pdf
 from .tasks import send_invoice_email_task
-import jdatetime
 
 
 # -----------------------
@@ -61,6 +64,16 @@ export_to_csv.short_description = _("Export to CSV")
 
 
 # -----------------------
+# ADMIN ACTION: CANCEL ORDER
+# -----------------------
+@admin.action(description=_("Cancel selected orders"))
+def cancel_orders(modeladmin, request, queryset):
+    for order in queryset:
+        for item in order.items.filter(status=OrderItem.ItemStatus.ACTIVE):
+            item.cancel()
+
+
+# -----------------------
 # INLINE ITEMS
 # -----------------------
 class OrderItemInline(admin.TabularInline):
@@ -69,6 +82,23 @@ class OrderItemInline(admin.TabularInline):
     extra = 0
     verbose_name = _("Order item")
     verbose_name_plural = _("Order items")
+
+    fields = ("product", "price", "quantity", "status")
+    readonly_fields = ("product", "price", "quantity")
+
+
+class ShipmentInline(admin.StackedInline):
+    model = Shipment
+    extra = 0
+    max_num = 1
+    can_delete = False
+
+
+class OrderEventInline(admin.TabularInline):
+    model = OrderEvent
+    extra = 0
+    readonly_fields = ("type", "message", "created_at", "data")
+    can_delete = False
 
 
 # -----------------------
@@ -86,15 +116,16 @@ class OrderAdmin(admin.ModelAdmin):
         "payment_status_display",
         "payment_method",
         "payment_ref_id",
-        "payment_reference",
         "reservation_status",
         "reserved_until",
         "fulfillment_status",
+        "shipment_tracking",
         "total_after_discount",
         "coupon",
         "discount",
         "created",
         "created_jalali",
+        "payment_reference",
     ]
 
     list_filter = [
@@ -104,8 +135,8 @@ class OrderAdmin(admin.ModelAdmin):
         "fulfillment_status",
         "created",
     ]
-    actions = [export_to_csv, send_invoice]
-    inlines = [OrderItemInline]
+    actions = [export_to_csv, send_invoice, cancel_orders]
+    inlines = [OrderItemInline, ShipmentInline, OrderEventInline]
 
     readonly_fields = [
         "coupon",
@@ -184,6 +215,8 @@ class OrderAdmin(admin.ModelAdmin):
             obj.PaymentStatus.PENDING: "#f0ad4e",
             obj.PaymentStatus.FAILED: "#dc3545",
             obj.PaymentStatus.CANCELLED: "#6c757d",
+            obj.PaymentStatus.PARTIALLY_REFUNDED: "#17a2b8",
+            obj.PaymentStatus.REFUNDED: "#6f42c1",
         }.get(status, "#6c757d")
 
         label = obj.get_payment_status_display()
@@ -232,3 +265,37 @@ class OrderAdmin(admin.ModelAdmin):
             return "-"
         j = jdatetime.datetime.fromgregorian(datetime=obj.created)
         return j.strftime("%Y/%m/%d")
+
+    def shipment_tracking(self, obj):
+        if hasattr(obj, "shipment") and obj.shipment.tracking_code:
+            return obj.shipment.tracking_code
+        return "-"
+
+    shipment_tracking.short_description = _("Tracking")
+
+
+@admin.register(Shipment)
+class ShipmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "order",
+        "carrier",
+        "tracking_code",
+        "shipped_at",
+        "delivered_at",
+    )
+
+    search_fields = ("order__id", "tracking_code")
+
+    list_filter = ("carrier", "shipped_at", "delivered_at")
+
+
+@admin.action(description=_("Cancel selected items"))
+def cancel_items(modeladmin, request, queryset):
+    for item in queryset:
+        item.cancel()
+
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ("order", "product", "quantity", "status")
+    actions = [cancel_items]

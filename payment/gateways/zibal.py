@@ -27,7 +27,7 @@ class ZibalGateway(BaseGateway):
             "description": f"Order {order.id}",
         }
 
-        response = requests.post(self.request_url, json=data)
+        response = requests.post(self.request_url, json=data, timeout=10)
         result = response.json()
 
         self.log(order, "request", data, result)
@@ -48,7 +48,7 @@ class ZibalGateway(BaseGateway):
             "amount": int(order.get_total_cost()),
         }
 
-        response = requests.post(self.verify_url, json=data)
+        response = requests.post(self.verify_url, json=data, timeout=10)
         result = response.json()
 
         self.log(order, "verify", data, result)

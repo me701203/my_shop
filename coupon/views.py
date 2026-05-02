@@ -72,9 +72,6 @@ def coupon_apply(request):
     request.session["coupon_id"] = coupon.id
     request.session.modified = True
 
-    coupon.uses += 1
-    coupon.save()
-
     messages.success(request, _("Coupon applied successfully."))
 
     return redirect("cart:cart_detail")

@@ -231,6 +231,23 @@ class ProductVariant(models.Model):
     def is_in_stock(self):
         return self.stock > 0
 
+    def reduce_stock(self, quantity):
+        from django.db import transaction
+
+        if quantity <= 0:
+            return
+
+        with transaction.atomic():
+            # Lock this row
+            variant = ProductVariant.objects.select_for_update().get(pk=self.pk)
+
+            # Prevent overselling
+            if variant.stock < quantity:
+                raise ValueError("Not enough stock available for this variant.")
+
+            variant.stock -= quantity
+            variant.save(update_fields=["stock"])
+
 
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver

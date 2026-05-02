@@ -9,7 +9,7 @@ from django.utils import timezone
 from .utils import generate_invoice_pdf  # <-- IMPORTANT
 
 from .models import Order
-from shop.models import Product
+from shop.models import Product, ProductVariant
 
 logger = get_task_logger(__name__)
 
@@ -106,11 +106,16 @@ def expire_reserved_orders():
             # lock row
             order = Order.objects.select_for_update().get(pk=order.pk)
 
-            # restore stock
-            for item in order.items.select_related("product"):
-                Product.objects.filter(pk=item.product_id).update(
-                    stock=F("stock") + item.quantity
-                )
+            # Restore stock with proper locking
+            for item in order.items.all():
+                if item.variant:
+                    ProductVariant.objects.select_for_update().filter(
+                        pk=item.variant_id
+                    ).update(stock=F("stock") + item.quantity)
+                else:
+                    Product.objects.select_for_update().filter(
+                        pk=item.product_id
+                    ).update(stock=F("stock") + item.quantity)
 
             # mark expired
             order.reservation_status = Order.ReservationStatus.EXPIRED
