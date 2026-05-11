@@ -38,6 +38,7 @@ IS_LOCAL = DEBUG
 # Application definition
 
 INSTALLED_APPS = [
+    "accounts.apps.AccountsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -49,14 +50,25 @@ INSTALLED_APPS = [
     "shop.apps.ShopConfig",
     "payment.apps.PaymentConfig",
     "coupon.apps.CouponConfig",
+    "staff.apps.StaffConfig",
     "myshop.core",
     "rosetta",
     "parler",
+    "imagekit",
 ]
+
+# Set custom user model
+AUTH_USER_MODEL = "accounts.User"
+
+# Login/Logout redirects
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+LOGIN_URL = "/accounts/login/"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "shop.middleware.RecentlyViewedMiddleware",
     # Language detection happens here
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -64,6 +76,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "shop.middleware.CacheMonitoringMiddleware",
 ]
 
 
@@ -83,6 +96,9 @@ TEMPLATES = [
                 "cart.context_processors.cart",
                 "myshop.core.context_processors.labels",
                 "shop.context_processors.digits.digit_mode",
+                "shop.context_processors.wishlist.wishlist_count",
+                "shop.context_processors.recently_viewed.recently_viewed",
+                "shop.context_processors.stock_alerts.stock_alert_count",
             ],
         },
     },
@@ -170,16 +186,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# ImageKit Configuration
+IMAGEKIT_DEFAULT_CACHEFILE_BACKEND = "imagekit.cachefiles.backends.Simple"
+IMAGEKIT_CACHEFILE_DIR = "cache"
+IMAGEKIT_PILLOW_BACKEND = "pillow"
+
+# Thumbnail specifications
+IMAGEKIT_SPEC_CACHEFILE_NAMER = "imagekit.cachefiles.namers.hash"
+
 CART_SESSION_ID = "cart"
 
-# Email Settings
+# Email configuration for password reset (development)
 if DEBUG:
-    # DEVELOPMENT OPTION 1 — Console backend (default)
-    # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-    # DEVELOPMENT OPTION 2 — File backend (uncomment when testing attachments)
-    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-    EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
     DEFAULT_FROM_EMAIL = "webshop@example.com"
 else:
     # PRODUCTION — Real SMTP
@@ -200,6 +219,37 @@ CELERY_BEAT_SCHEDULE = {
         "task": "orders.tasks.expire_reserved_orders",
         "schedule": crontab(minute="*/1"),
     },
+    "check-stock-alerts": {
+        "task": "shop.tasks.check_and_send_stock_alerts",
+        "schedule": crontab(minute="*/30"),
+    },
+}
+
+
+# Cache Configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_CLASS_KWARGS": {
+                "max_connections": 50,
+                "retry_on_timeout": True,
+            },
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
+        },
+        "KEY_PREFIX": "myshop",
+        "VERSION": 1,
+    }
+}
+
+# Cache timeouts (in seconds)
+CACHE_TTL = {
+    "product_list": 60 * 15,  # 15 minutes
+    "product_detail": 60 * 30,  # 30 minutes
+    "category_sidebar": 60 * 60,  # 1 hour
 }
 
 # -----------------------
@@ -248,7 +298,7 @@ PAYMENT_GATEWAYS = {
 CURRENCY_CODE = "IRR"
 CURRENCY_SYMBOLS = {
     "fa": "تومان",
-    "en": "Toman",
+    "en": "$",
 }
 
 # Invoice / Order labels (RTL friendly)

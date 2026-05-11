@@ -1,3 +1,4 @@
+<!-- templates/shop/product/detail.html -->
 {% extends "shop/base.html" %}
 {% load static %}
 {% load i18n %}
@@ -9,7 +10,6 @@
 
 {% block content %}
   <style>
-
     .toast{
       position:fixed;
       bottom:30px;
@@ -22,23 +22,457 @@
       transform:translateY(20px);
       transition:all .3s ease;
       z-index:9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
     .toast.show{
       opacity:1;
       transform:translateY(0);
     }
-  
+
+    .toast.success{
+      background:#27ae60;
+    }
+
+    .toast.error{
+      background:#e74c3c;
+    }
+
+    
+    /* Stock Alert Button */
+    .stock-alert-btn {
+      position: absolute;
+      top: 70px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.95);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 10;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      color: #3498db;
+    }
+
+    .stock-alert-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      background: #3498db;
+      color: white;
+    }
+
+    .stock-alert-btn:active {
+      transform: scale(0.95);
+    }
+
+    .stock-alert-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .stock-alert-btn.subscribed {
+      background: #27ae60;
+      color: white;
+    }
+
+    .stock-alert-btn.subscribed:hover {
+      background: #229954;
+    }
+
+    /* Stock Alert Modal */
+    .stock-alert-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stock-alert-modal.show {
+      display: flex;
+    }
+
+    .stock-alert-modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 450px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .stock-alert-modal h3 {
+      margin: 0 0 15px 0;
+      color: #333;
+      font-size: 22px;
+    }
+
+    .stock-alert-modal p {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .stock-alert-modal input[type="email"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 15px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .stock-alert-modal input[type="email"]:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .stock-alert-modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .stock-alert-modal button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .stock-alert-modal .btn-cancel {
+      background: #ecf0f1;
+      color: #333;
+    }
+
+    .stock-alert-modal .btn-cancel:hover {
+      background: #d5dbdb;
+    }
+
+    .stock-alert-modal .btn-subscribe {
+      background: #3498db;
+      color: white;
+    }
+
+    .stock-alert-modal .btn-subscribe:hover {
+      background: #2980b9;
+    }
+
+    .stock-alert-modal .btn-subscribe:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+
+    .variant-selector {
+      margin: 15px 0;
+    }
+
+    .variant-selector label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .variant-selector select {
+      width: 100%;
+      max-width: 300px;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+
+    .variant-selector select:focus {
+      outline: none;
+      border-color: #5993bb;
+    }
+
+    .variant-selector select.error {
+      border-color: #e74c3c;
+    }
+
+    #variant-stock-label {
+      margin: 10px 0;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .product-detail img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    #add-to-cart-btn {
+      position: relative;
+      min-width: 150px;
+    }
+
+    #add-to-cart-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #add-to-cart-btn.loading {
+      color: transparent;
+    }
+
+    #add-to-cart-btn.loading::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      top: 50%;
+      left: 50%;
+      margin-left: -8px;
+      margin-top: -8px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spinner 0.6s linear infinite;
+    }
+
+    @keyframes spinner {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .product-image-container {
+      position: relative;
+      overflow: hidden;
+      cursor: zoom-in;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .product-image-container img {
+      display: block;
+      width: 100%;
+      height: auto;
+      transition: transform 0.3s ease;
+    }
+
+    .product-image-container.zoomed {
+      cursor: zoom-out;
+    }
+
+    .product-image-container.zoomed img {
+      transform: scale(2);
+      transform-origin: center;
+    }
+
+    /* Lens for hover zoom */
+    .zoom-lens {
+      position: absolute;
+      border: 2px solid #d4d4d4;
+      width: 150px;
+      height: 150px;
+      pointer-events: none;
+      display: none;
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .product-image-container:hover .zoom-lens {
+      display: block;
+    }
+
+    /* Wishlist button styles */
+    .wishlist-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.95);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      z-index: 10;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+
+    .wishlist-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    .wishlist-btn:active {
+      transform: scale(0.95);
+    }
+
+    .wishlist-btn.in-wishlist {
+      color: #e74c3c;
+    }
+
+    .wishlist-btn:not(.in-wishlist) {
+      color: #ccc;
+    }
+
+    .wishlist-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .wishlist-btn.loading {
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+
+    .product-header h1 {
+      margin: 0;
+      flex: 1;
+    }
+
+    .wishlist-btn-inline {
+      background: transparent;
+      border: 2px solid #ddd;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .wishlist-btn-inline:hover {
+      border-color: #e74c3c;
+      transform: scale(1.1);
+    }
+
+    .wishlist-btn-inline.in-wishlist {
+      color: #e74c3c;
+      border-color: #e74c3c;
+      background: #ffe6e6;
+    }
+
+    .wishlist-btn-inline:not(.in-wishlist) {
+      color: #999;
+    }
+
+    .wishlist-btn-inline:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
   </style>
-  
 
   <div class="product-detail">
-    <img src="{% if product.image %}{{ product.image.url }}{% else %}
-      {% static "img/no_image.png" %}{% endif %}"
-        alt="{% if product.image %}{{ product.image_alt|default:product.name }}{% else %}{% trans 'No image available' %}{% endif %}">
-
-
-    <h1>{{ product.name }}</h1>
+    <div class="product-image-container" id="image-zoom-container">
+      {% if product.image %}
+        <img 
+          id="product-image"
+          src="{{ product.thumbnail_large.url }}" 
+          alt="{{ product.image_alt|default:product.name }}"
+          loading="eager"
+          width="800"
+          height="800"
+          data-full-image="{{ product.image.url }}">
+      {% else %}
+        <img 
+          id="product-image"
+          src="{% static 'img/no_image.png' %}" 
+          alt="{% trans 'No image available' %}"
+          loading="eager">
+      {% endif %}
+      <div class="zoom-lens" id="zoom-lens"></div>
+      
+      <!-- Wishlist button on image -->
+      {% if user.is_authenticated %}
+        <button 
+          class="wishlist-btn {% if in_wishlist %}in-wishlist{% endif %}" 
+          id="wishlist-btn-image"
+          data-product-id="{{ product.id }}"
+          title="{% if in_wishlist %}{% trans 'Remove from wishlist' %}{% else %}{% trans 'Add to wishlist' %}{% endif %}">
+          {% if in_wishlist %}♥{% else %}♡{% endif %}
+        </button>
+      {% endif %}
+      <!-- Stock Alert button on image -->
+      <button 
+        class="stock-alert-btn" 
+        id="stock-alert-btn-image"
+        data-product-id="{{ product.id }}"
+        title="{% trans 'Get notified when back in stock' %}"
+        style="display: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="product-header">
+      <h1>{{ product.name }}</h1>
+      
+      <!-- Wishlist button next to title (for mobile/alternative placement) -->
+      {% if user.is_authenticated %}
+        <button 
+          class="wishlist-btn-inline {% if in_wishlist %}in-wishlist{% endif %}" 
+          id="wishlist-btn-header"
+          data-product-id="{{ product.id }}"
+          title="{% if in_wishlist %}{% trans 'Remove from wishlist' %}{% else %}{% trans 'Add to wishlist' %}{% endif %}">
+          {% if in_wishlist %}♥{% else %}♡{% endif %}
+        </button>
+      {% endif %}
+    </div>
 
     <h2>
       <a href="{{ product.category.get_absolute_url }}">
@@ -57,23 +491,15 @@
         {% endif %}
       </span>
     </p>
-    
 
-    <p id="variant-stock-label" style="color:#666; font-size:14px;"></p>
-    
-    
     <form id="add-to-cart-form" action="{% url 'cart:cart_add' product.id %}" method="post">
       {% csrf_token %}
-    
-      {# Quantity + override (from the form) #}
-      {{ cart_product_form.quantity }}
-      {{ cart_product_form.override }}
-    
+
       {# Variant selector: only if there are variants #}
       {% if product.variants.exists %}
         <div class="variant-selector">
           <label for="id_variant_id">
-            {% trans "Choose variant" %}:
+            {% trans "Choose variant" %} <span style="color:red;">*</span>
           </label>
 
           <select name="variant_id" id="id_variant_id" required>
@@ -85,208 +511,709 @@
                   data-price="{{ variant.get_price }}"
                   data-price-display="{{ variant.get_price|currency }}"
                   data-stock="{{ variant.stock }}"
+                  {% if variant.image %}data-image="{{ variant.thumbnail_large.url }}"{% endif %}
                   {% if variant.stock == 0 %}disabled{% endif %}
                 >
-            
-
-                  {# Build readable label: "Size M / Blue — €120" or "Blue — €80" #}
-                  {% if variant.size %}
-                    {{ variant.size }}
+                  {# Build readable label: "Size M / Blue" or just "Blue" #}
+                  {% if variant.size %}{{ variant.size }}{% endif %}
+                  {% if variant.size and variant.color %} / {% endif %}
+                  {% if variant.color %}{{ variant.color }}{% endif %}
+                  
+                  {# Show stock status in dropdown #}
+                  {% if variant.stock == 0 %}
+                    ({% trans "Out of stock" %})
+                  {% elif variant.stock <= 3 %}
+                    ({% blocktrans count counter=variant.stock %}{{ counter }} left{% plural %}{{ counter }} left{% endblocktrans %})
                   {% endif %}
-
-                  {% if variant.size and variant.color %}
-                    /
-                  {% endif %}
-
-                  {% if variant.color %}
-                    {{ variant.color }}
-                  {% endif %}
-
-                  — {{ variant.get_price|currency }}
                 </option>
             {% endfor %}
           </select>
+          <div id="variant-error" class="error-message"></div>
         </div>
 
+        <p id="variant-stock-label" style="color:#666;"></p>
       {% else %}
-        {# No variants → required field still exists but stays empty #}
+        {# No variants → hidden field #}
         <input type="hidden" name="variant_id" value="">
+        
+        {# Show stock for non-variant products #}
+        {% if product.stock <= 3 and product.stock > 0 %}
+          <p style="color: #e67e22; font-weight: 600;">
+            {% blocktrans count counter=product.stock %}Only {{ counter }} left{% plural %}Only {{ counter }} left{% endblocktrans %}
+          </p>
+        {% elif product.stock > 3 %}
+          <p style="color: green; font-weight: 600;">{% trans "In stock" %}</p>
+        {% endif %}
       {% endif %}
 
-    
+      {# Quantity + override #}
+      {{ cart_product_form.quantity }}
+      {{ cart_product_form.override }}
+
       <button type="submit" id="add-to-cart-btn">
         {% trans "Add to cart" %}
-      </button>      
+      </button>
     </form>
-    
 
     {{ product.description|linebreaks }}
+
+    <!-- Review Sorting and Filtering -->
+    <div style="margin-top: 40px; border-top: 2px solid #eee; padding-top: 30px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h3 style="margin: 0;">{% trans "Customer Reviews" %} ({{ review_count }})</h3>
+        
+        {% if reviews %}
+        <div style="display: flex; gap: 15px; align-items: center;">
+          <!-- Filter by verified purchases -->
+          <div>
+            <label style="font-size: 14px; margin-right: 8px;">
+              <input type="checkbox" id="filter-verified" style="margin-right: 5px;">
+              {% trans "Verified Purchases Only" %}
+            </label>
+          </div>
+          
+          <!-- Sort dropdown -->
+          <div>
+            <label for="sort-reviews" style="font-size: 14px; margin-right: 8px;">{% trans "Sort by:" %}</label>
+            <select id="sort-reviews" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+              <option value="newest">{% trans "Newest First" %}</option>
+              <option value="oldest">{% trans "Oldest First" %}</option>
+              <option value="highest">{% trans "Highest Rating" %}</option>
+              <option value="lowest">{% trans "Lowest Rating" %}</option>
+            </select>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Average Rating Display -->
+      {% if avg_rating %}
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; gap: 20px;">
+        <div style="text-align: center;">
+          <div style="font-size: 48px; font-weight: bold; color: #f39c12;">{{ avg_rating|floatformat:1 }}</div>
+          <div style="color: #f39c12; font-size: 24px;">
+            {% for i in "12345" %}
+              {% if forloop.counter <= avg_rating|floatformat:0 %}★{% else %}☆{% endif %}
+            {% endfor %}
+          </div>
+          <div style="color: #666; font-size: 14px; margin-top: 5px;">{% trans "Average Rating" %}</div>
+        </div>
+        
+        <!-- Rating breakdown -->
+        <div style="flex: 1;">
+          {% for rating in "54321" %}
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <span style="width: 60px; font-size: 14px;">{{ rating }} {% trans "stars" %}</span>
+            {% with count=reviews|length %}
+            {% with rating_count=reviews|dictsort:"rating"|length %}
+            <div style="flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+              <div style="height: 100%; background: #f39c12; width: {% widthratio rating_count count 100 %}%;"></div>
+            </div>
+            <span style="width: 40px; text-align: right; font-size: 13px; color: #666;">{{ rating_count }}</span>
+            {% endwith %}
+            {% endwith %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div id="reviews-container" class="reviews-list" style="margin-top: 30px;">
+        {% for review in reviews %}
+          <div class="review-item" 
+              data-rating="{{ review.rating }}" 
+              data-date="{{ review.created|date:'U' }}"
+              data-verified="{{ review.is_verified_purchase|yesno:'true,false' }}"
+              style="padding: 20px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; {% if review.user == user %}background: #f0f8ff;{% endif %} transition: all 0.3s;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+              <div>
+                <strong style="font-size: 16px;">{{ review.user.get_full_name|default:review.user.username }}</strong>
+                {% if review.is_verified_purchase %}
+                  <span style="display: inline-block; background: #27ae60; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px;">
+                    ✓ {% trans "Verified Purchase" %}
+                  </span>
+                {% endif %}
+                {% if review.user == user %}
+                  <span style="display: inline-block; background: #3498db; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px;">
+                    {% trans "Your Review" %}
+                  </span>
+                {% endif %}
+              </div>
+              <div style="color: #f39c12; font-size: 20px; font-weight: bold;">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            
+            <div style="color: #999; font-size: 13px; margin-bottom: 12px;">
+              <i class="far fa-clock"></i> {{ review.created|date:"F d, Y" }}
+            </div>
+            
+            {% if review.comment %}
+              <div style="margin-top: 10px; line-height: 1.7; color: #333; font-size: 15px;">
+                {{ review.comment|linebreaks }}
+              </div>
+            {% endif %}
+            
+            <!-- Helpful buttons (optional future feature) -->
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; gap: 15px; font-size: 13px; color: #666;">
+              <button class="helpful-btn" style="background: none; border: 1px solid #ddd; padding: 5px 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
+                👍 {% trans "Helpful" %} <span class="count">(0)</span>
+              </button>
+              <button class="report-btn" style="background: none; border: none; color: #999; cursor: pointer; padding: 5px;">
+                🚩 {% trans "Report" %}
+              </button>
+            </div>
+          </div>
+        {% empty %}
+          <div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 8px;">
+            <div style="font-size: 48px; margin-bottom: 15px;">📝</div>
+            <p style="color: #999; font-size: 16px; margin: 0;">{% trans "No reviews yet. Be the first to review this product!" %}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <!-- END REVIEWS SECTION -->
 
     <h3>{% trans "Customers who bought this also bought:" %}</h3>
 
     <div class="recommended-grid">
-    {% for p in recommended_products %}
-      <div class="recommended-item">
-        <a href="{{ p.get_absolute_url }}">
-          <div class="recommended-image">
-            {% if p.image %}
-              <img src="{{ p.image.url }}" alt="{{ p.image_alt|default:p.name }}">
-            {% else %}
-              <img src="/static/img/no_image.png" alt="{% trans 'No image available' %}">
-            {% endif %}
-          </div>
-          <p class="recommended-title">{{ p.name }}</p>
-        </a>
-      </div>
-    {% endfor %}
+      {% for p in recommended_products %}
+        <div class="recommended-item">
+          <a href="{{ p.get_absolute_url }}">
+            <div class="recommended-image">
+              {% if p.image %}
+                <img 
+                  src="{{ p.thumbnail_small.url }}" 
+                  alt="{{ p.image_alt|default:p.name }}"
+                  loading="lazy"
+                  width="150"
+                  height="150">
+              {% else %}
+                <img 
+                  src="{% static 'img/no_image.png' %}" 
+                  alt="{% trans 'No image available' %}"
+                  loading="lazy"
+                  width="150"
+                  height="150">
+              {% endif %}
+            </div>
+            <p class="recommended-title">{{ p.name }}</p>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
   </div>
+
   <div id="toast" class="toast"></div>
+
+  
+  <!-- Stock Alert Modal -->
+  <div id="stock-alert-modal" class="stock-alert-modal">
+    <div class="stock-alert-modal-content">
+      <h3>{% trans "Stock Alert" %}</h3>
+      <p>{% trans "Enter your email to be notified when this product is back in stock." %}</p>
+      
+      <input 
+        type="email" 
+        id="stock-alert-email" 
+        placeholder="{% trans 'your@email.com' %}"
+        value="{% if user.is_authenticated %}{{ user.email }}{% endif %}"
+        {% if user.is_authenticated and user.email %}readonly{% endif %}>
+      
+      <div class="stock-alert-modal-buttons">
+        <button type="button" class="btn-cancel" id="stock-alert-cancel">
+          {% trans "Cancel" %}
+        </button>
+        <button type="button" class="btn-subscribe" id="stock-alert-subscribe">
+          {% trans "Notify Me" %}
+        </button>
+      </div>
+    </div>
+  </div>
+
+
   <script>
     document.addEventListener("DOMContentLoaded", function(){
-
       const variantSelect = document.getElementById("id_variant_id");
       const priceEl = document.getElementById("product-price");
       const stockLabel = document.getElementById("variant-stock-label");
-      const basePriceDisplay = priceEl.dataset.basePrice || priceEl.textContent;
-
-
-      if(variantSelect){
-
-        variantSelect.addEventListener("change", function(){
-
-          const selected = this.options[this.selectedIndex];
-        
-          const priceDisplay = selected.dataset.priceDisplay;
-          const stockRaw = selected.dataset.stock;
-          const stock = stockRaw !== undefined ? parseInt(stockRaw, 10) : null;
-        
-          // Update price if we have a display value
-          if(priceDisplay){
-            priceEl.textContent = priceDisplay;
-          } else {
-            // No variant selected (placeholder), reset back to base product price
-            priceEl.textContent = basePriceDisplay;
-            // Note: if this line is too complex we can simplify below
-          }
-        
-          // Stock label behaviour
-          if(stock === null || isNaN(stock)){
-            // Placeholder selected → clear label or show default
-            stockLabel.textContent = "";
-            stockLabel.style.color = "#666";
-            return;
-          }
-        
-          if(stock === 0){
-            stockLabel.textContent = "Out of stock";
-            stockLabel.style.color = "red";
-          }
-          else if(stock <= 3){
-            stockLabel.textContent = "Only " + stock + " left";
-            stockLabel.style.color = "#e67e22";
-          }
-          else{
-            stockLabel.textContent = "In stock";
-            stockLabel.style.color = "green";
-          }
-        
-        });        
-      }
-
-    
-      const form = document.getElementById("add-to-cart-form");
+      const basePriceDisplay = priceEl ? priceEl.dataset.basePrice || priceEl.textContent : "";
+      const addToCartBtn = document.getElementById("add-to-cart-btn");
+      const addToCartForm = document.getElementById("add-to-cart-form");
+      const variantError = document.getElementById("variant-error");
       const toast = document.getElementById("toast");
-    
-      function getCookie(name){
+
+      // Wishlist functionality
+      const wishlistBtnImage = document.getElementById("wishlist-btn-image");
+      const wishlistBtnHeader = document.getElementById("wishlist-btn-header");
+
+      function toggleWishlist(btn) {
+        if (!btn) return;
+        
+        const productId = btn.dataset.productId;
+        const isInWishlist = btn.classList.contains("in-wishlist");
+        
+        // Determine endpoint
+        const endpoint = isInWishlist 
+          ? "{% url 'shop:wishlist_remove' 999 %}".replace('999', productId)
+          : "{% url 'shop:wishlist_add' 999 %}".replace('999', productId);
+        
+        // Disable both buttons
+        if (wishlistBtnImage) wishlistBtnImage.disabled = true;
+        if (wishlistBtnHeader) wishlistBtnHeader.disabled = true;
+        
+        // Add loading state
+        btn.classList.add("loading");
+        
+        fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            'X-CSRFToken': getCookie('csrftoken'),
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.ok) {
+            // Update both buttons based on action
+            [wishlistBtnImage, wishlistBtnHeader].forEach(button => {
+              if (!button) return;
+              
+              if (isInWishlist) {
+                // Was removed
+                button.classList.remove("in-wishlist");
+                button.textContent = "♡";
+                button.title = "{% trans 'Add to wishlist' %}";
+              } else {
+                // Was added
+                button.classList.add("in-wishlist");
+                button.textContent = "♥";
+                button.title = "{% trans 'Remove from wishlist' %}";
+              }
+            });
+            
+            showToast(data.message, "success");
+            
+            // Update header wishlist badge with consistent logic
+            const wishlistBadge = document.querySelector('.wishlist-count');
+            if (data.wishlist_count !== undefined) {
+              if (wishlistBadge) {
+                // Badge exists - update or remove
+                if (data.wishlist_count > 0) {
+                  wishlistBadge.textContent = data.wishlist_count;
+                } else {
+                  wishlistBadge.remove();
+                }
+              } else if (data.wishlist_count > 0) {
+                // Badge doesn't exist but count > 0 - create it
+                const wishlistLink = document.querySelector('a[href*="wishlist"]');
+                if (wishlistLink) {
+                  const newBadge = document.createElement('span');
+                  newBadge.className = 'wishlist-count';
+                  newBadge.textContent = data.wishlist_count;
+                  wishlistLink.appendChild(newBadge);
+                }
+              }
+            }
+
+          } else {
+            showToast(data.error || "{% trans 'Failed to update wishlist' %}", "error");
+          }
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          showToast("{% trans 'An error occurred' %}", "error");
+        })
+        .finally(() => {
+          // Re-enable buttons and remove loading state
+          if (wishlistBtnImage) {
+            wishlistBtnImage.disabled = false;
+            wishlistBtnImage.classList.remove("loading");
+          }
+          if (wishlistBtnHeader) {
+            wishlistBtnHeader.disabled = false;
+            wishlistBtnHeader.classList.remove("loading");
+          }
+        });
+      }
+      
+      // Helper function to get CSRF token
+      function getCookie(name) {
         let cookieValue = null;
-        if(document.cookie && document.cookie !== ""){
-          const cookies = document.cookie.split(";");
-          for(let i=0;i<cookies.length;i++){
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
             const cookie = cookies[i].trim();
-            if(cookie.substring(0,name.length+1)===(name+"=")){
-              cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
               break;
             }
           }
         }
         return cookieValue;
       }
-    
-      const csrftoken = getCookie("csrftoken");
-    
-      function showToast(message){
-        toast.textContent = message;
-        toast.classList.add("show");
-    
-        setTimeout(()=>{
-          toast.classList.remove("show");
-        },2000);
-      }
-    
-      function updateHeaderTotal(amount){
-        const headerTotal = document.getElementById("header-cart-total");
-        if(headerTotal){
-          headerTotal.textContent = amount;
-        }
-      }
-    
-      form.addEventListener("submit", function(e){
-    
-        e.preventDefault();
-    
-        const url = form.getAttribute("action");
-        const formData = new FormData(form);
 
-        const selectedVariantOption = variantSelect ? variantSelect.options[variantSelect.selectedIndex] : null;
-        const selectedQuantityInput = document.getElementById('id_quantity'); // Assuming your quantity input has this ID
-        const currentStock = selectedVariantOption ? parseInt(selectedVariantOption.dataset.stock, 10) : null;
-        const requestedQuantity = parseInt(selectedQuantityInput.value, 10);
+      if (wishlistBtnImage) {
+        wishlistBtnImage.addEventListener("click", function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleWishlist(this);
+        });
+      }
 
-        if (currentStock !== null && !isNaN(currentStock) && requestedQuantity > currentStock) {
-            // Not enough stock
-            showToast(`Not enough stock. Only ${currentStock} available.`);
-            return; // Prevent submission
+      if (wishlistBtnHeader) {
+        wishlistBtnHeader.addEventListener("click", function(e) {
+          e.preventDefault();
+          toggleWishlist(this);
+        });
+      }
+
+      
+      // Stock Alert functionality
+      const stockAlertBtn = document.getElementById("stock-alert-btn-image");
+      const stockAlertModal = document.getElementById("stock-alert-modal");
+      const stockAlertEmailInput = document.getElementById("stock-alert-email");
+      const stockAlertSubscribeBtn = document.getElementById("stock-alert-subscribe");
+      const stockAlertCancelBtn = document.getElementById("stock-alert-cancel");
+      let currentVariantId = null;
+
+      function updateStockAlertButton() {
+        if (!stockAlertBtn) return;
+
+        let isOutOfStock = false;
+        
+        if (variantSelect && variantSelect.value) {
+          // Product with variants
+          const selected = variantSelect.options[variantSelect.selectedIndex];
+          const stock = parseInt(selected.dataset.stock, 10);
+          currentVariantId = variantSelect.value;
+          isOutOfStock = stock === 0;
+        } else if (!variantSelect) {
+          // Product without variants
+          const productStock = {{ product.stock|default:0 }};
+          currentVariantId = null;
+          isOutOfStock = productStock === 0;
         }
-    
-        fetch(url,{
-          method:"POST",
-          headers:{
-            "X-Requested-With":"XMLHttpRequest",
-            "X-CSRFToken":csrftoken
-          },
-          body:formData
-        })
-        .then(res=>res.json())
-        .then(data=>{
-    
-          if(!data.ok){
-            // Handle errors, e.g., "Not enough stock" from server
-            showToast(data.error || "Error adding to cart");
-            // If the server error is "Not enough stock", you might want to update the stock label here too
+
+        stockAlertBtn.style.display = isOutOfStock ? 'flex' : 'none';
+      }
+
+      if (stockAlertBtn) {
+        stockAlertBtn.addEventListener("click", function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          stockAlertModal.classList.add("show");
+        });
+      }
+
+      if (stockAlertCancelBtn) {
+        stockAlertCancelBtn.addEventListener("click", function() {
+          stockAlertModal.classList.remove("show");
+        });
+      }
+
+      // Close modal on outside click
+      if (stockAlertModal) {
+        stockAlertModal.addEventListener("click", function(e) {
+          if (e.target === stockAlertModal) {
+            stockAlertModal.classList.remove("show");
+          }
+        });
+      }
+
+      if (stockAlertSubscribeBtn) {
+        stockAlertSubscribeBtn.addEventListener("click", function() {
+          const email = stockAlertEmailInput.value.trim();
+          
+          if (!email) {
+            showToast("{% trans 'Please enter your email' %}", "error");
             return;
           }
-          
-          // Update header total
-          updateHeaderTotal(data.cart_total);
-          // Show success toast
-          showToast("✅ Added to cart");
 
-          if (variantSelect && selectedVariantOption) {
-            const updatedStock = data.updated_variant_stock; // Assuming server sends this
-            if (updatedStock !== undefined) {
-                selectedVariantOption.dataset.stock = updatedStock; // Update the data attribute
-                // Manually trigger the change event to update the label
-                variantSelect.dispatchEvent(new Event('change'));
+          // Basic email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            showToast("{% trans 'Please enter a valid email' %}", "error");
+            return;
+          }
+
+          stockAlertSubscribeBtn.disabled = true;
+          stockAlertSubscribeBtn.textContent = "{% trans 'Subscribing...' %}";
+
+          const formData = new FormData();
+          formData.append('email', email);
+          if (currentVariantId) {
+            formData.append('variant_id', currentVariantId);
+          }
+
+          fetch("{% url 'shop:subscribe_stock_alert' product.id %}", {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": getCookie('csrftoken')
+            },
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.ok) {
+              showToast(data.message, "success");
+              stockAlertModal.classList.remove("show");
+              
+              // Update button state
+              if (stockAlertBtn) {
+                stockAlertBtn.classList.add("subscribed");
+                stockAlertBtn.title = "{% trans 'You will be notified' %}";
+              }
+            } else {
+              showToast(data.error || "{% trans 'Failed to subscribe' %}", "error");
             }
-        }
-    
-        })
-        .catch(()=>{
-          showToast("Server error");
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            showToast("{% trans 'An error occurred' %}", "error");
+          })
+          .finally(() => {
+            stockAlertSubscribeBtn.disabled = false;
+            stockAlertSubscribeBtn.textContent = "{% trans 'Notify Me' %}";
+          });
         });
-    
-      });
-    
+      }
+
+      // Initial check
+      updateStockAlertButton();
+
+      // Variant selection handler
+      if(variantSelect){
+        variantSelect.addEventListener("change", function(){
+          const selected = this.options[this.selectedIndex];
+          const priceDisplay = selected.dataset.priceDisplay;
+          const stockRaw = selected.dataset.stock;
+          const stock = stockRaw !== undefined ? parseInt(stockRaw, 10) : null;
+
+          // Clear any previous errors
+          variantSelect.classList.remove("error");
+          if(variantError){
+            variantError.classList.remove("show");
+            variantError.textContent = "";
+          }
+
+          // Update price
+          if(priceDisplay && selected.value){
+            priceEl.textContent = priceDisplay;
+          } else {
+            priceEl.textContent = basePriceDisplay;
+          }
+
+          // Update stock label
+          if(!selected.value || stock === null || isNaN(stock)){
+            if(stockLabel) stockLabel.textContent = "";
+            return;
+          }
+
+          // Update stock alert button visibility
+          updateStockAlertButton();
+
+          if(stock === 0){
+            if(stockLabel){
+              stockLabel.textContent = "{% trans 'Out of stock' %}";
+              stockLabel.style.color = "#e74c3c";
+            }
+            addToCartBtn.disabled = true;
+          } else if(stock <= 3){
+            if(stockLabel){
+              stockLabel.textContent = `{% trans 'Only' %} ${stock} {% trans 'left' %}`;
+              stockLabel.style.color = "#e67e22";
+            }
+            addToCartBtn.disabled = false;
+          } else {
+            if(stockLabel){
+              stockLabel.textContent = "{% trans 'In stock' %}";
+              stockLabel.style.color = "#27ae60";
+            }
+            addToCartBtn.disabled = false;
+          }
+        });
+      }
+
+      // AJAX form submission
+      if(addToCartForm){
+        addToCartForm.addEventListener("submit", function(e){
+          e.preventDefault();
+
+          // Validate variant selection if required
+          if(variantSelect && variantSelect.hasAttribute("required") && !variantSelect.value){
+            variantSelect.classList.add("error");
+            if(variantError){
+              variantError.textContent = "{% trans 'Please select a variant' %}";
+              variantError.classList.add("show");
+            }
+            showToast("{% trans 'Please select a variant' %}", "error");
+            return;
+          }
+
+          // Disable button and show loading state
+          addToCartBtn.disabled = true;
+          addToCartBtn.classList.add("loading");
+
+          const formData = new FormData(addToCartForm);
+          const url = addToCartForm.action;
+
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+            },
+            body: formData
+          })
+          .then(response => {
+            if(!response.ok){
+              return response.json().then(data => {
+                throw new Error(data.error || "{% trans 'Failed to add to cart' %}");
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if(data.ok){
+              showToast("{% trans 'Product added to cart successfully' %}", "success");
+              
+              // Optional: Update cart count in header if you have one
+              // updateCartCount(data.line_quantity);
+              
+              // Reset form
+              if(variantSelect){
+                variantSelect.value = "";
+                variantSelect.dispatchEvent(new Event("change"));
+              }
+            } else {
+              throw new Error(data.error || "{% trans 'Failed to add to cart' %}");
+            }
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            showToast(error.message, "error");
+          })
+          .finally(() => {
+            // Re-enable button and remove loading state
+            addToCartBtn.disabled = false;
+            addToCartBtn.classList.remove("loading");
+          });
+        });
+      }
+
+      // Toast notification helper
+      function showToast(message, type = "success"){
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 3000);
+      }
+      
+      // Image zoom functionality
+      const imageContainer = document.getElementById("image-zoom-container");
+      const productImage = document.getElementById("product-image");
+      const zoomLens = document.getElementById("zoom-lens");
+
+      if (imageContainer && productImage) {
+        // Click to toggle zoom
+        imageContainer.addEventListener("click", function(e) {
+          // Don't zoom if clicking wishlist button
+          if (e.target.closest('.wishlist-btn')) return;
+          this.classList.toggle("zoomed");
+        });
+
+        // Hover zoom with lens
+        imageContainer.addEventListener("mousemove", function(e) {
+          if (!zoomLens) return;
+          const rect = imageContainer.getBoundingClientRect();
+          const lensWidth = zoomLens.offsetWidth;
+          const lensHeight = zoomLens.offsetHeight;
+
+          let x = e.clientX - rect.left - lensWidth / 2;
+          let y = e.clientY - rect.top - lensHeight / 2;
+
+          // Limites
+          if (x < 0) x = 0;
+          if (y < 0) y = 0;
+          if (x > rect.width - lensWidth) x = rect.width - lensWidth;
+          if (y > rect.height - lensHeight) y = rect.height - lensHeight;
+
+          zoomLens.style.left = x + "px";
+          zoomLens.style.top = y + "px";
+
+          // Déplacement du point de zoom : on ajuste l'origine
+          const percentX = x / (rect.width - lensWidth);
+          const percentY = y / (rect.height - lensHeight);
+          productImage.style.transformOrigin = (percentX * 100) + "% " + (percentY * 100) + "%";
+        });
+
+        imageContainer.addEventListener("mouseenter", function() {
+          if (zoomLens) zoomLens.style.display = "block";
+        });
+
+        imageContainer.addEventListener("mouseleave", function() {
+          if (zoomLens) zoomLens.style.display = "none";
+        });
+      }
     });
-  </script>    
+  </script>
+  <!-- JavaScript for sorting and filtering -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const sortSelect = document.getElementById('sort-reviews');
+      const filterVerified = document.getElementById('filter-verified');
+      const reviewsContainer = document.getElementById('reviews-container');
+      
+      if (!sortSelect || !reviewsContainer) return;
+      
+      function sortAndFilterReviews() {
+        const reviews = Array.from(reviewsContainer.querySelectorAll('.review-item'));
+        const sortBy = sortSelect.value;
+        const showVerifiedOnly = filterVerified ? filterVerified.checked : false;
+        
+        // Filter
+        reviews.forEach(review => {
+          if (showVerifiedOnly) {
+            review.style.display = review.dataset.verified === 'true' ? 'block' : 'none';
+          } else {
+            review.style.display = 'block';
+          }
+        });
+        
+        // Sort visible reviews
+        const visibleReviews = reviews.filter(r => r.style.display !== 'none');
+        
+        visibleReviews.sort((a, b) => {
+          switch(sortBy) {
+            case 'newest':
+              return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+            case 'oldest':
+              return parseInt(a.dataset.date) - parseInt(b.dataset.date);
+            case 'highest':
+              return parseInt(b.dataset.rating) - parseInt(a.dataset.rating);
+            case 'lowest':
+              return parseInt(a.dataset.rating) - parseInt(b.dataset.rating);
+            default:
+              return 0;
+          }
+        });
+        
+        // Re-append in sorted order
+        visibleReviews.forEach(review => reviewsContainer.appendChild(review));
+      }
+      
+      sortSelect.addEventListener('change', sortAndFilterReviews);
+      if (filterVerified) {
+        filterVerified.addEventListener('change', sortAndFilterReviews);
+      }
+    });
+  </script>
 {% endblock %}

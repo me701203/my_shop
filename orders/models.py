@@ -54,6 +54,13 @@ class Order(models.Model):
     first_name = models.CharField(_("first name"), max_length=50)
     last_name = models.CharField(_("last name"), max_length=50)
     email = models.EmailField(_("email"))
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
 
     address = models.CharField(_("address"), max_length=250)
     postal_code = models.CharField(_("postal code"), max_length=20)
@@ -154,6 +161,25 @@ class Order(models.Model):
         validators=[MinValueValidator(Decimal("0.00"))],
     )
 
+    def update_fulfillment_status(self, new_status):
+        """
+        Update fulfillment status and send notification email.
+        Use this method instead of direct assignment to trigger emails.
+        """
+        old_status = self.fulfillment_status
+
+        if old_status != new_status:
+            self.fulfillment_status = new_status
+            self.save(update_fields=["fulfillment_status"])
+
+            # Send email notification
+            from .tasks import send_status_change_email
+
+            send_status_change_email.delay(self.id, old_status, new_status)
+
+    def get_absolute_url(self):
+        return reverse("orders:order_detail", args=[self.id])
+
 
 class OrderItem(models.Model):
     class ItemStatus(models.TextChoices):
@@ -211,7 +237,7 @@ class OrderItem(models.Model):
 
     def cancel(self):
         from django.db.models import F
-        from shop.models import Product
+        from shop.models import Product, ProductVariant
         from orders.services.events import log_order_event
         from orders.models import OrderEvent, Order
 
@@ -225,29 +251,46 @@ class OrderItem(models.Model):
             return
 
         with transaction.atomic():
-            # restore stock first
-            Product.objects.select_for_update().filter(id=self.product_id).update(
-                stock=F("stock") + self.quantity
-            )
+            # Restore stock based on whether this is a variant or product
+            if self.variant:
+                ProductVariant.objects.select_for_update().filter(
+                    id=self.variant_id
+                ).update(stock=F("stock") + self.quantity)
+            else:
+                Product.objects.select_for_update().filter(id=self.product_id).update(
+                    stock=F("stock") + self.quantity
+                )
 
-            # make sure status is cancelled
+            # Mark as cancelled
             self.status = self.ItemStatus.CANCELLED
             self.save(update_fields=["status"])
 
             order = self.order
-            # If there are no more active items, cancel the order & its reservation
+            # If no more active items, cancel the order
             if not order.items.filter(status=self.ItemStatus.ACTIVE).exists():
                 order.fulfillment_status = Order.FulfillmentStatus.CANCELLED
                 order.reservation_status = Order.ReservationStatus.FAILED
                 order.save(update_fields=["fulfillment_status", "reservation_status"])
 
+        # Build descriptive name for logging
+        item_description = self.product_name
+        if self.variant:
+            variant_parts = []
+            if self.variant.size:
+                variant_parts.append(f"Size: {self.variant.size}")
+            if self.variant.color:
+                variant_parts.append(f"Color: {self.variant.color}")
+            if variant_parts:
+                item_description += f" ({', '.join(variant_parts)})"
+
         log_order_event(
             self.order,
             OrderEvent.EventType.ITEM_CANCELLED,
-            f"Item '{self.product_name}' cancelled",
+            f"Item '{item_description}' cancelled",
             data={
                 "item_id": self.id,
                 "product_id": self.product_id,
+                "variant_id": self.variant_id if self.variant else None,
                 "quantity": self.quantity,
             },
         )
@@ -367,6 +410,7 @@ class OrderEvent(models.Model):
     class EventType(models.TextChoices):
         ORDER_CREATED = "order_created", "Order created"
         STOCK_RESERVED = "stock_reserved", "Stock reserved"
+        STOCK_RESTORED = "stock_restored", "Stock restored"
         PAYMENT_REQUESTED = "payment_requested", "Payment requested"
         PAYMENT_SUCCESS = "payment_success", "Payment successful"
         PAYMENT_FAILED = "payment_failed", "Payment failed"

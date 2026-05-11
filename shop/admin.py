@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from parler.admin import TranslatableAdmin
 
-from .models import Category, Product, ProductVariant
+from .models import Category, Product, ProductVariant, Review, StockAlert
 
 
 @admin.register(Category)
@@ -82,3 +82,34 @@ class ProductAdmin(TranslatableAdmin):
         return "-"
 
     image_preview.short_description = _("Image")
+
+    search_fields = ["translations__name", "translations__description", "sku"]
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ["product", "user", "rating", "is_verified_purchase", "created"]
+    list_filter = ["rating", "is_verified_purchase", "created"]
+    search_fields = [
+        "product__translations__name",
+        "user__username",
+        "user__email",
+        "comment",
+    ]
+    readonly_fields = ["created", "updated"]
+    date_hierarchy = "created"
+
+    fieldsets = (
+        (None, {"fields": ("product", "user", "rating", "comment")}),
+        (_("Status"), {"fields": ("is_verified_purchase",)}),
+        (_("Timestamps"), {"fields": ("created", "updated"), "classes": ("collapse",)}),
+    )
+
+
+@admin.register(StockAlert)
+class StockAlertAdmin(admin.ModelAdmin):
+    list_display = ["user", "product", "email", "created_at", "notified", "notified_at"]
+    list_filter = ["notified", "created_at"]
+    search_fields = ["user__username", "product__name", "email"]
+    readonly_fields = ["created_at", "notified_at"]
+    date_hierarchy = "created_at"

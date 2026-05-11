@@ -19,7 +19,7 @@ from orders.models import OrderItem, Order
 from payment.models import Refund, PaymentLog
 from payment.forms import RefundCreateForm
 from payment.services.refund import complete_refund, RefundError
-from shop.models import Product
+from shop.models import Product, ProductVariant
 from orders.services.events import log_order_event
 from orders.models import OrderEvent
 
@@ -194,17 +194,47 @@ def payment_verify(request, order_id):
 
     # 3. CALLBACK VALIDATION
     if not gateway.is_callback_success(request):
-        order.payment_status = Order.PaymentStatus.CANCELLED
-        order.save(update_fields=["payment_status"])
+        with transaction.atomic():
+            order.payment_status = Order.PaymentStatus.CANCELLED
+            order.reservation_status = Order.ReservationStatus.FAILED
+            order.save(update_fields=["payment_status", "reservation_status"])
 
-        PaymentLog.objects.create(
-            order=order,
-            gateway=order.payment_method,
-            action="callback",
-            request_data=request.GET.dict(),
-            success=False,
-            message="User cancelled payment",
-        )
+            # Restore stock immediately on manual cancellation (variant-aware)
+            for item in order.items.all():
+                if item.variant:
+                    ProductVariant.objects.filter(pk=item.variant_id).update(
+                        stock=F("stock") + item.quantity
+                    )
+                else:
+                    Product.objects.filter(pk=item.product_id).update(
+                        stock=F("stock") + item.quantity
+                    )
+
+            # Update order items status
+            order.items.update(status=OrderItem.ItemStatus.CANCELLED)
+
+            # Log stock restoration
+            log_order_event(
+                order,
+                OrderEvent.EventType.STOCK_RESTORED,
+                "Stock restored after payment cancellation.",
+                data={"reason": "payment_cancelled"},
+            )
+
+            log_order_event(
+                order,
+                OrderEvent.EventType.PAYMENT_FAILED,
+                "Payment cancelled by user",
+            )
+
+            PaymentLog.objects.create(
+                order=order,
+                gateway=order.payment_method,
+                action="callback",
+                request_data=request.GET.dict(),
+                success=False,
+                message="User cancelled payment",
+            )
 
         return render(request, "payment/payment_status.html", {"status": "cancelled"})
 
@@ -336,8 +366,6 @@ def payment_verify(request, order_id):
         # Restore stock immediately on payment failure (variant-aware)
         for item in order.items.all():
             if item.variant:
-                from shop.models import ProductVariant
-
                 ProductVariant.objects.filter(pk=item.variant_id).update(
                     stock=F("stock") + item.quantity
                 )
@@ -345,6 +373,16 @@ def payment_verify(request, order_id):
                 Product.objects.filter(pk=item.product_id).update(
                     stock=F("stock") + item.quantity
                 )
+
+        # Update order items status - changed recently
+        order.items.update(status=OrderItem.ItemStatus.CANCELLED)
+
+        log_order_event(
+            order,
+            OrderEvent.EventType.STOCK_RESTORED,
+            "Stock restored after payment cancellation.",
+            data={"reason": "payment_cancelled"},
+        )
 
         log_order_event(
             order,

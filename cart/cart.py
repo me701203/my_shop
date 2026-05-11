@@ -1,4 +1,5 @@
 from decimal import Decimal
+from django.db import transaction
 
 from django.conf import settings
 from shop.models import Product, ProductVariant
@@ -13,8 +14,6 @@ class Cart:
         """
         self.session = request.session
         self.coupon_id = self.session.get("coupon_id")
-
-        # print("CART INIT coupon_id:", self.coupon_id)  # for debug
 
         cart = self.session.get(settings.CART_SESSION_ID)
         if not cart:
@@ -46,14 +45,12 @@ class Cart:
 
         # Bulk fetch products
         products = Product.objects.filter(id__in=product_ids).select_related("category")
-
         products_map = {p.id: p for p in products}
 
         # Bulk fetch variants
         variants = ProductVariant.objects.filter(id__in=variant_ids).select_related(
             "product"
         )
-
         variants_map = {v.id: v for v in variants}
 
         # Yield cart items
@@ -79,7 +76,15 @@ class Cart:
             item["price"] = Decimal(item["price"])
             item["total_price"] = item["price"] * item["quantity"]
 
-            # create quantity update form
+            # Add stock info for easier template access
+            if variant:
+                item["available_stock"] = variant.stock
+                item["is_variant"] = True
+            else:
+                item["available_stock"] = product.stock if product else 0
+                item["is_variant"] = False
+
+            # Create quantity update form
             item["update_quantity_form"] = CartAddProductForm(
                 initial={
                     "quantity": item["quantity"],
@@ -96,36 +101,76 @@ class Cart:
         """
         return sum(item["quantity"] for item in self.cart.values())
 
+    def get_current_quantity(self, product_id, variant_id=None):
+        """
+        Get the current quantity of a specific product/variant in the cart.
+        Returns 0 if not in cart.
+        """
+        variant_key = str(variant_id) if variant_id else "default"
+        key = f"{product_id}:{variant_key}"
+
+        if key in self.cart:
+            return self.cart[key]["quantity"]
+        return 0
+
     def add(self, product, quantity=1, override_quantity=False, variant_id=None):
         """
         Add a product (with optional variant) to the cart or update its quantity.
+        Now includes proper stock validation against existing cart quantities.
+
+        Returns tuple: (success: bool, error_message: str or None, available_stock: int)
         """
         variant_key = str(variant_id) if variant_id else "default"
         key = f"{product.id}:{variant_key}"
 
-        if key not in self.cart:
-            # Determine correct price
-            if variant_id:
-                try:
-                    variant = ProductVariant.objects.get(id=variant_id, product=product)
+        # Determine available stock and price
+        if variant_id:
+            try:
+                with transaction.atomic():
+                    variant = ProductVariant.objects.select_for_update().get(
+                        id=variant_id, product=product
+                    )
+                    available_stock = variant.stock
                     price = variant.get_price()
-                except ProductVariant.DoesNotExist:
-                    price = product.price
-            else:
-                price = product.price
+            except ProductVariant.DoesNotExist:
+                return False, "Invalid variant selected.", 0
+        else:
+            # Refresh product stock from DB to get latest value
+            product.refresh_from_db()
+            available_stock = product.stock
+            price = product.price
 
+        # Calculate what the new quantity would be
+        current_quantity = self.cart.get(key, {}).get("quantity", 0)
+
+        if override_quantity:
+            new_quantity = quantity
+        else:
+            new_quantity = current_quantity + quantity
+
+        # Validate against available stock
+        if new_quantity > available_stock:
+            return (
+                False,
+                f"Not enough stock. Available: {available_stock}, requested: {new_quantity}",
+                available_stock,
+            )
+
+        if new_quantity <= 0:
+            return False, "Quantity must be positive.", available_stock
+
+        # Stock validation passed - update cart
+        if key not in self.cart:
             self.cart[key] = {
                 "quantity": 0,
                 "price": str(price),
                 "variant_id": variant_id,
             }
 
-        if override_quantity:
-            self.cart[key]["quantity"] = quantity
-        else:
-            self.cart[key]["quantity"] += quantity
-
+        self.cart[key]["quantity"] = new_quantity
         self.save()
+
+        return True, None, available_stock
 
     def save(self):
         # mark the session as "modified" to make sure it gets saved
@@ -203,9 +248,10 @@ class Cart:
     def revalidate_stock(self):
         """
         Ensure cart quantities do not exceed real stock.
-        Returns True if any item changed.
+        Returns dict with adjustment details: {'changed': bool, 'adjustments': list}
         """
         changed = False
+        adjustments = []
 
         # We must iterate over cart items using __iter__ to get real product objects
         for item in self:
@@ -219,6 +265,16 @@ class Cart:
                 new_qty = max(real_stock, 0)
                 key = item["key"]
 
+                adjustments.append(
+                    {
+                        "key": key,
+                        "product": product,
+                        "variant": variant,
+                        "old_qty": qty,
+                        "new_qty": new_qty,
+                    }
+                )
+
                 if new_qty > 0:
                     self.cart[key]["quantity"] = new_qty
                 else:
@@ -229,4 +285,21 @@ class Cart:
         if changed:
             self.save()
 
-        return changed
+        return {"changed": changed, "adjustments": adjustments}
+
+    def has_stock_issues(self):
+        """
+        Check if any cart item exceeds available stock.
+        Returns True if there are stock problems.
+        """
+        for item in self:
+            product = item["product"]
+            variant = item.get("variant")
+            quantity = item["quantity"]
+
+            available = variant.stock if variant else product.stock
+
+            if quantity > available:
+                return True
+
+        return False

@@ -1,0 +1,138 @@
+{% extends "staff/base.html" %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<h2 style="margin-bottom:16px;">Orders</h2>
+
+{# Quick filters #}
+<div class="quick-filters">
+    <a href="{% url 'staff:order_list' %}" class="quick-btn {% if not params.quick %}active{% endif %}">All</a>
+    <a href="?quick=needs_attention" class="quick-btn {% if params.quick == 'needs_attention' %}active{% endif %}">Needs Attention</a>
+    <a href="?quick=ready_to_ship"   class="quick-btn {% if params.quick == 'ready_to_ship' %}active{% endif %}">Ready to Ship</a>
+    <a href="?quick=completed"       class="quick-btn {% if params.quick == 'completed' %}active{% endif %}">Completed</a>
+    <a href="?quick=problem"         class="quick-btn {% if params.quick == 'problem' %}active{% endif %}">Problem Orders</a>
+</div>
+
+{# Filters form #}
+<div class="card">
+    <form method="get" class="filters">
+        <input type="text" name="q" placeholder="Order ID, email, name" value="{{ params.q }}">
+        <select name="fulfillment_status">
+            <option value="">All Fulfillment</option>
+            {% for val, label in fulfillment_choices %}<option value="{{ val }}" {% if params.fulfillment_status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select name="payment_status">
+            <option value="">All Payment</option>
+            {% for val, label in payment_choices %}<option value="{{ val }}" {% if params.payment_status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <input type="date" name="date_from" value="{{ params.date_from }}">
+        <input type="date" name="date_to"   value="{{ params.date_to }}">
+        <select name="sort">
+            <option value="-created" {% if params.sort == '-created' or not params.sort %}selected{% endif %}>Newest</option>
+            <option value="created"  {% if params.sort == 'created' %}selected{% endif %}>Oldest</option>
+            <option value="-updated" {% if params.sort == '-updated' %}selected{% endif %}>Recently Updated</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'staff:order_list' %}" class="btn" style="background:#eee;">Reset</a>
+    </form>
+</div>
+
+{# Bulk action form wraps the table #}
+<form method="post" action="{% url 'staff:bulk_order_action' %}" id="bulk-form">
+    {% csrf_token %}
+
+    {# Bulk action bar — hidden until at least one checkbox is checked #}
+    <div id="bulk-bar" style="display:none; margin-bottom:12px; padding:10px 14px; background:#f0f4ff; border:1px solid #c7d2fe; border-radius:8px; display:flex; align-items:center; gap:10px;">
+        <span id="bulk-count" style="font-size:14px; color:#4338ca; font-weight:500;"></span>
+        <select name="action" style="padding:6px 10px; border:1px solid #c7d2fe; border-radius:6px; font-size:14px;">
+            <option value="">— Choose action —</option>
+            <option value="mark_shipped">Mark as Shipped</option>
+            <option value="mark_cancelled">Mark as Cancelled</option>
+            <option value="export_csv">Export CSV</option></select>
+        <button type="submit" class="btn btn-primary btn-sm"
+                onclick="return document.querySelector('[name=action]').value || (alert('Please choose an action.'), false)">
+            Apply
+        </button><button type="button" class="btn btn-sm" style="background:#eee;" onclick="clearSelection()">Clear</button>
+    </div>
+
+    {# Table #}
+    <div class="card" style="padding:0; overflow:hidden;">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:36px;">
+                        <input type="checkbox" id="select-all" title="Select all on this page">
+                    </th>
+                    <th>#</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Fulfillment</th>
+                    <th>Payment</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>{% for order in page_obj %}<tr>
+                <td><input type="checkbox" name="order_ids" value="{{ order.id }}" class="order-cb"></td>
+                <td>{{ order.id }}</td>
+                <td>{{ order.first_name }} {{ order.last_name }}<br><small style="color:#888;">{{ order.email }}</small></td>
+                <td>{{ order.created|date:"Y-m-d H:i" }}</td>
+                <td><span class="badge badge-{{ order.fulfillment_status }}">{{ order.get_fulfillment_status_display }}</span></td>
+                <td><span class="badge badge-{{ order.payment_status }}">{{ order.get_payment_status_display }}</span></td>
+                <td>{{ order.get_total_cost }}</td>
+                <td><a href="{% url 'staff:order_detail' order.id %}" class="btn btn-sm btn-primary">View</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center; color:#888; padding:30px;">No orders found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{# Pagination #}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&{{ params.urlencode }}">&laquo; Prev</a>
+    {% endif %}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&{{ params.urlencode }}">Next &raquo;</a>
+    {% endif %}
+</div>
+
+<script>
+(function () {
+  const bar = document.getElementById("bulk-bar");
+  const countEl = document.getElementById("bulk-count");
+  const selectAll = document.getElementById("select-all");
+  const checkboxes = () => document.querySelectorAll(".order-cb");
+
+  function updateBar() {
+    const checked = document.querySelectorAll(".order-cb:checked").length;
+    if (checked > 0) {
+      bar.style.display = "flex";
+      countEl.textContent = checked + " order" + (checked !== 1 ? "s" : "") + " selected";
+    } else {
+      bar.style.display = "none";
+    }
+    selectAll.indeterminate = checked > 0 && checked < checkboxes().length;
+    selectAll.checked = checked > 0 && checked === checkboxes().length;
+  }
+
+  selectAll.addEventListener("change", function () {
+    checkboxes().forEach(cb => cb.checked = this.checked);
+    updateBar();
+  });
+
+  document.addEventListener("change", function (e) {
+    if (e.target.classList.contains("order-cb")) updateBar();
+  });
+
+  window.clearSelection = function () {
+    checkboxes().forEach(cb => cb.checked = false);
+    selectAll.checked = false;
+    updateBar();
+  };
+})();
+</script>
+{% endblock %}

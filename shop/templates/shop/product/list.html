@@ -24,15 +24,320 @@
   <div id="main" class="product-list">
     <h1>{% if category %}{{ category.name }}{% else %}{% trans "Products" %}{% endif %}</h1>
     {% for product in products %}
-      <div class="item">
-        <a href="{{ product.get_absolute_url }}">
-          <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static "img/no_image.png" %}{% endif %}"
-            alt="{% if product.image %}{{ product.image_alt|default:product.name }}{% else %}{% trans 'No image available' %}{% endif %}">
-        </a>
+      <div class="item {% if product.total_stock == 0 %}out-of-stock{% endif %}">
+        <div style="position: relative;">
+          <a href="{{ product.get_absolute_url }}">
+            {% if product.image %}
+              <img 
+                src="{{ product.thumbnail_small.url }}" 
+                alt="{{ product.image_alt|default:product.name }}"
+                loading="lazy"
+                width="150"
+                height="150">
+            {% else %}
+              <img 
+                src="{% static 'img/no_image.png' %}" 
+                alt="{% trans 'No image available' %}"
+                loading="lazy"
+                width="150"
+                height="150">
+            {% endif %}
+          </a>
+          
+          {# Out of Stock Badge #}
+          {% if product.total_stock == 0 %}
+          <div style="position: absolute; top: 8px; left: 8px; background: rgba(231, 76, 60, 0.95); color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; z-index: 5;">
+            {% trans "Out of Stock" %}
+          </div>
+          {% endif %}
+          
+          {# Wishlist button overlay on image #}
+          <button 
+            class="wishlist-btn-card" 
+            data-product-id="{{ product.id }}"
+            data-in-wishlist="{% if product.id in wishlist_product_ids %}true{% else %}false{% endif %}"
+            aria-label="{% trans 'Add to wishlist' %}"
+            style="position: absolute; top: 8px; right: 8px; background: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; z-index: 10;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="{% if product.id in wishlist_product_ids %}#e74c3c{% else %}none{% endif %}" stroke="{% if product.id in wishlist_product_ids %}#e74c3c{% else %}#333{% endif %}" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+
+          {# Stock Alert button overlay on image - only show if out of stock #}
+          {% if product.total_stock == 0 %}
+          <button 
+            class="stock-alert-btn-card" 
+            data-product-id="{{ product.id }}"
+            aria-label="{% trans 'Get notified when back in stock' %}"
+            style="position: absolute; top: 48px; right: 8px; background: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; z-index: 10; color: #3498db;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </button>
+          {% endif %}
+        </div>
+        
         <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
         <br>
-        {{ product.price|currency }}
+        
+        {# Show "From X" if product has variants, otherwise show exact price #}
+        {% if product.variants.exists %}
+          {% trans "From" %} {{ product.price|currency }}
+        {% else %}
+          {{ product.price|currency }}
+        {% endif %}
+        
+        {% if product.total_stock <= 3 and product.total_stock > 0 %}
+          <br>
+          <span style="color: #e67e22; font-size: 13px;">
+            {% blocktrans count counter=product.total_stock %}Only {{ counter }} left{% plural %}Only {{ counter }} left{% endblocktrans %}
+          </span>
+        {% endif %}
       </div>
     {% endfor %}
+
   </div>
+  
+  <style>
+    .item.out-of-stock {
+      opacity: 0.6;
+    }
+    
+    .item.out-of-stock img {
+      filter: grayscale(50%);
+    }
+    
+    .item.out-of-stock a {
+      color: #95a5a6;
+    }
+  </style>
+  
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const wishlistButtons = document.querySelectorAll('.wishlist-btn-card');
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+        
+        wishlistButtons.forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = this.dataset.productId;
+            const isInWishlist = this.dataset.inWishlist === 'true';
+            const url = isInWishlist 
+              ? "{% url 'shop:wishlist_remove' 0 %}".replace('/0/', `/${productId}/`)
+              : "{% url 'shop:wishlist_add' 0 %}".replace('/0/', `/${productId}/`);
+            
+            // Disable button during request
+            this.disabled = true;
+            
+            fetch(url, {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.ok) {
+                // Toggle state
+                const newState = data.status === 'added';
+                this.dataset.inWishlist = newState;
+                
+                // Update SVG
+                const svg = this.querySelector('svg');
+                svg.setAttribute('fill', newState ? '#e74c3c' : 'none');
+                svg.setAttribute('stroke', newState ? '#e74c3c' : '#333');
+                
+                // Update wishlist badge in header
+                const wishlistBadge = document.querySelector('.wishlist-badge');
+                if (data.wishlist_count !== undefined) {
+                  if (data.wishlist_count > 0) {
+                    if (wishlistBadge) {
+                      wishlistBadge.textContent = data.wishlist_count;
+                    } else {
+                      // Create badge if it doesn't exist
+                      const wishlistLink = document.querySelector('.wishlist a');
+                      if (wishlistLink) {
+                        const badge = document.createElement('span');
+                        badge.className = 'wishlist-badge';
+                        badge.textContent = data.wishlist_count;
+                        wishlistLink.appendChild(badge);
+                      }
+                    }
+                  } else {
+                    // Remove badge if count is 0
+                    if (wishlistBadge) {
+                      wishlistBadge.remove();
+                    }
+                  }
+                }
+              }
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => {
+              // Re-enable button
+              this.disabled = false;
+            });
+          });
+        });
+      });
+
+      
+      // Stock Alert functionality
+      const stockAlertButtons = document.querySelectorAll('.stock-alert-btn-card');
+      const stockAlertModal = document.getElementById('stock-alert-modal');
+      const stockAlertEmailInput = document.getElementById('stock-alert-email');
+      const stockAlertSubscribeBtn = document.getElementById('stock-alert-subscribe');
+      const stockAlertCancelBtn = document.getElementById('stock-alert-cancel');
+      const toast = document.getElementById('toast');
+      let currentStockAlertProductId = null;
+
+      function showToast(message, type = 'success') {
+        toast.textContent = message;
+        toast.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
+        toast.style.display = 'block';
+        
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 3000);
+      }
+
+      stockAlertButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          currentStockAlertProductId = this.dataset.productId;
+          stockAlertModal.style.display = 'flex';
+        });
+      });
+
+      if (stockAlertCancelBtn) {
+        stockAlertCancelBtn.addEventListener('click', function() {
+          stockAlertModal.style.display = 'none';
+        });
+      }
+
+      // Close modal on outside click
+      if (stockAlertModal) {
+        stockAlertModal.addEventListener('click', function(e) {
+          if (e.target === stockAlertModal) {
+            stockAlertModal.style.display = 'none';
+          }
+        });
+      }
+
+      if (stockAlertSubscribeBtn) {
+        stockAlertSubscribeBtn.addEventListener('click', function() {
+          const email = stockAlertEmailInput.value.trim();
+          
+          if (!email) {
+            showToast("{% trans 'Please enter your email' %}", "error");
+            return;
+          }
+
+          // Basic email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            showToast("{% trans 'Please enter a valid email' %}", "error");
+            return;
+          }
+
+          if (!currentStockAlertProductId) {
+            showToast("{% trans 'Product not selected' %}", "error");
+            return;
+          }
+
+          stockAlertSubscribeBtn.disabled = true;
+          stockAlertSubscribeBtn.textContent = "{% trans 'Subscribing...' %}";
+
+          const formData = new FormData();
+          formData.append('email', email);
+
+          const url = "{% url 'shop:subscribe_stock_alert' 0 %}".replace('/0/', `/${currentStockAlertProductId}/`);
+
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": getCookie('csrftoken')
+            },
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.ok) {
+              showToast(data.message, "success");
+              stockAlertModal.style.display = 'none';
+              
+              // Update button state
+              const button = document.querySelector(`.stock-alert-btn-card[data-product-id="${currentStockAlertProductId}"]`);
+              if (button) {
+                button.style.background = '#27ae60';
+                button.style.color = 'white';
+                button.title = "{% trans 'You will be notified' %}";
+              }
+            } else {
+              showToast(data.error || "{% trans 'Failed to subscribe' %}", "error");
+            }
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            showToast("{% trans 'An error occurred' %}", "error");
+          })
+          .finally(() => {
+            stockAlertSubscribeBtn.disabled = false;
+            stockAlertSubscribeBtn.textContent = "{% trans 'Notify Me' %}";
+          });
+        });
+      }
+    </script>
+    
+    <!-- Stock Alert Modal -->
+    <div id="stock-alert-modal" class="stock-alert-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 10000; align-items: center; justify-content: center;">
+      <div class="stock-alert-modal-content" style="background: white; padding: 30px; border-radius: 12px; max-width: 450px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+        <h3 style="margin: 0 0 15px 0; color: #333; font-size: 22px;">{% trans "Stock Alert" %}</h3>
+        <p style="color: #666; margin-bottom: 20px; line-height: 1.6;">{% trans "Enter your email to be notified when this product is back in stock." %}</p>
+        
+        <input 
+          type="email" 
+          id="stock-alert-email" 
+          placeholder="{% trans 'your@email.com' %}"
+          value="{% if user.is_authenticated %}{{ user.email }}{% endif %}"
+          {% if user.is_authenticated and user.email %}readonly{% endif %}
+          style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 15px; margin-bottom: 20px; box-sizing: border-box;">
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" id="stock-alert-cancel" style="padding: 10px 20px; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; background: #ecf0f1; color: #333;">
+            {% trans "Cancel" %}
+          </button>
+          <button type="button" id="stock-alert-subscribe" style="padding: 10px 20px; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; background: #3498db; color: white;">
+            {% trans "Notify Me" %}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" style="display: none; position: fixed; bottom: 30px; right: 30px; background: #27ae60; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10001; font-size: 15px;"></div>
+
+    
 {% endblock %}

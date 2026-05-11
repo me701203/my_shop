@@ -37,3 +37,8 @@ def currency(value):
     symbol = symbols.get(lang[:2], symbols.get("en", ""))
 
     return f"{formatted} {symbol}"
+
+
+@register.filter
+def split(value, delimiter=","):
+    return value.split(delimiter)

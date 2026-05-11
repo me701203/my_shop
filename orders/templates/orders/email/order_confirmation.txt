@@ -1,0 +1,16 @@
+Order Confirmation
+
+Thank you for your order!
+
+Order ID: {{ order.id }}
+
+Total: {{ order.get_total_cost }} Toman
+
+Items:
+
+{% for item in order.items.all %}
+
+{{ item.product.name }} x {{ item.quantity }} = {{ item.get_cost }} Toman
+{% endfor %}
+
+We’ll process your order shortly.

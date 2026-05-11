@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Back in Stock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+        }
+        .product-info {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Good News! Your Product is Back in Stock</h1>
+        </div>
+        <div class="content">
+            <p>Hello{% if user %} {{ user.get_full_name|default:user.username }}{% endif %},</p>
+            
+            <p>The product you requested a stock alert for is now available:</p>
+            
+            <div class="product-info">
+                <div class="product-name">{{ product.safe_translation_getter "name" }}</div>
+                {% if product.stock %}
+                <p><strong>Stock:</strong> {{ product.stock }} units</p>
+                {% endif %}
+                {% if product.price %}
+                <p><strong>Price:</strong> ${{ product.price|floatformat:2 }}</p>
+                {% endif %}
+            </div>
+            
+            <p>Click the button below to view and purchase this product:</p>
+            
+            <a href="{{ product.get_absolute_url }}" class="button">View Product</a>
+            
+            <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                Note: Stock is limited. Act fast to secure your purchase.
+            </p>
+        </div>
+        <div class="footer">
+            <p>This email was sent automatically.</p>
+            <p>&copy; 2026 Our Shop. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

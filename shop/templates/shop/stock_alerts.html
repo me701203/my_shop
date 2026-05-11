@@ -1,0 +1,200 @@
+{% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "My Stock Alerts" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+  
+  <div style="margin-bottom: 30px;">
+    <h1 style="font-size: 32px; color: #333; margin-bottom: 10px;">
+      🔔 {% trans "My Stock Alerts" %}
+    </h1>
+    <p style="color: #666; font-size: 16px;">
+      {% trans "You will receive an email when these products are back in stock" %}
+    </p>
+  </div>
+
+  {% if alerts %}
+    <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+      
+      <div style="padding: 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0;">
+        <p style="margin: 0; color: #555; font-size: 15px;">
+          {% blocktrans count counter=total_alerts %}
+            You have {{ counter }} active stock alert
+          {% plural %}
+            You have {{ counter }} active stock alerts
+          {% endblocktrans %}
+        </p>
+      </div>
+
+      <div style="padding: 20px;">
+        {% for alert in alerts %}
+          <div class="stock-alert-item" data-alert-id="{{ alert.id }}" style="display: flex; gap: 20px; padding: 20px; border-bottom: 1px solid #f0f0f0; align-items: center;">
+            
+            {# Product Image #}
+            <div style="flex-shrink: 0;">
+              <a href="{% url 'shop:product_detail' alert.product.slug %}">
+                {% if alert.product.image %}
+                  <img src="{{ alert.product.image.url }}" alt="{{ alert.product.name }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #e0e0e0;">
+                {% else %}
+                  <div style="width: 100px; height: 100px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">
+                    {% trans "No image" %}
+                  </div>
+                {% endif %}
+              </a>
+            </div>
+
+            {# Product Info #}
+            <div style="flex-grow: 1;">
+              <h3 style="margin: 0 0 8px 0; font-size: 18px;">
+                <a href="{% url 'shop:product_detail' alert.product.slug %}" style="color: #333; text-decoration: none;">
+                  {{ alert.product.name }}
+                </a>
+              </h3>
+              
+              <p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">
+                {% trans "Subscribed on" %}: {{ alert.created_at|date:"F d, Y" }}
+              </p>
+
+              {# Stock Status #}
+              {% if alert.is_available %}
+                <div style="display: inline-block; padding: 6px 12px; background: #d4edda; color: #155724; border-radius: 6px; font-size: 13px; font-weight: 600;">
+                  ✓ {% trans "Back in stock!" %}
+                </div>
+              {% else %}
+                <div style="display: inline-block; padding: 6px 12px; background: #fff3cd; color: #856404; border-radius: 6px; font-size: 13px; font-weight: 600;">
+                  ⏳ {% trans "Out of stock" %}
+                </div>
+              {% endif %}
+            </div>
+
+            {# Actions #}
+            <div style="flex-shrink: 0; display: flex; gap: 10px;">
+              {% if alert.is_available %}
+                <a href="{% url 'shop:product_detail' alert.product.slug %}" style="padding: 10px 20px; background: #27ae60; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600;">
+                  {% trans "View Product" %}
+                </a>
+              {% endif %}
+              
+              <button 
+                class="delete-alert-btn" 
+                data-alert-id="{{ alert.id }}"
+                style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                {% trans "Remove" %}
+              </button>
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+
+  {% else %}
+    {# Empty State #}
+    <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div style="font-size: 64px; margin-bottom: 20px;">🔔</div>
+      <h2 style="font-size: 24px; color: #333; margin-bottom: 10px;">
+        {% trans "No Active Stock Alerts" %}
+      </h2>
+      <p style="color: #666; font-size: 16px; margin-bottom: 30px;">
+        {% trans "Subscribe to stock alerts on product pages to get notified when items are back in stock" %}
+      </p>
+      <a href="{% url 'shop:product_list' %}" style="display: inline-block; padding: 12px 30px; background: #3498db; color: white; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">
+        {% trans "Browse Products" %}
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" style="display: none; position: fixed; bottom: 30px; right: 30px; background: #27ae60; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10001; font-size: 15px;"></div>
+
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
+    toast.style.display = 'block';
+    
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 3000);
+  }
+
+  // Delete alert functionality
+  document.querySelectorAll('.delete-alert-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const alertId = this.dataset.alertId;
+      const alertItem = document.querySelector(`.stock-alert-item[data-alert-id="${alertId}"]`);
+      
+      if (!confirm("{% trans 'Are you sure you want to remove this stock alert?' %}")) {
+        return;
+      }
+
+      this.disabled = true;
+      this.textContent = "{% trans 'Removing...' %}";
+
+      const url = "{% url 'shop:delete_stock_alert' 0 %}".replace('/0/', `/${alertId}/`);
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          showToast(data.message, 'success');
+          
+          // Remove the alert item with animation
+          alertItem.style.transition = 'opacity 0.3s, transform 0.3s';
+          alertItem.style.opacity = '0';
+          alertItem.style.transform = 'translateX(20px)';
+          
+          setTimeout(() => {
+            alertItem.remove();
+            
+            // Check if no alerts left
+            const remainingAlerts = document.querySelectorAll('.stock-alert-item');
+            if (remainingAlerts.length === 0) {
+              location.reload();
+            }
+          }, 300);
+        } else {
+          showToast(data.error || "{% trans 'Failed to remove alert' %}", 'error');
+          this.disabled = false;
+          this.textContent = "{% trans 'Remove' %}";
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showToast("{% trans 'An error occurred' %}", 'error');
+        this.disabled = false;
+        this.textContent = "{% trans 'Remove' %}";
+      });
+    });
+  });
+</script>
+
+{% endblock %}

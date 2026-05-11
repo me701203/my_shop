@@ -1,0 +1,62 @@
+{% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load currency_filters %}
+
+{% block title %}
+  {% if query %}
+    {% blocktrans %}Search results for "{{ query }}"{% endblocktrans %}
+  {% else %}
+    {% trans "Search Products" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div id="main" class="product-list">
+    <h1>
+      {% if query %}
+        {% blocktrans count counter=result_count %}
+          {{ counter }} result for "{{ query }}"
+        {% plural %}
+          {{ counter }} results for "{{ query }}"
+        {% endblocktrans %}
+      {% else %}
+        {% trans "Search Products" %}
+      {% endif %}
+    </h1>
+
+    {% if query %}
+      {% if results %}
+        {% for product in results %}
+          <div class="item">
+            <a href="{{ product.get_absolute_url }}">
+              {% if product.image %}
+                <img 
+                  src="{{ product.thumbnail_small.url }}" 
+                  alt="{{ product.image_alt_text|default:product.name }}"
+                  loading="lazy"
+                  width="150"
+                  height="150">
+              {% else %}
+                <img 
+                  src="{% static 'img/no_image.png' %}" 
+                  alt="{% trans 'No image available' %}"
+                  loading="lazy"
+                  width="150"
+                  height="150">
+              {% endif %}
+            </a>
+            <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+            <br>
+            {{ product.price|currency }}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>{% trans "No products found matching your search." %}</p>
+        <p><a href="{% url 'shop:product_list' %}">{% trans "Browse all products" %}</a></p>
+      {% endif %}
+    {% else %}
+      <p>{% trans "Please enter a search term." %}</p>
+    {% endif %}
+  </div>
+{% endblock %}

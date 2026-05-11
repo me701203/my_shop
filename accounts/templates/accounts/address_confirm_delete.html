@@ -1,0 +1,103 @@
+{% extends 'accounts/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Address" %}{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <h2>{% trans "Delete Address" %}</h2>
+        
+        <div class="address-preview">
+            <h4>{{ address.label }}</h4>
+            <p><strong>{{ address.first_name }} {{ address.last_name }}</strong></p>
+            <p>{{ address.address }}</p>
+            <p>{{ address.city }}, {{ address.postal_code }}</p>
+        </div>
+
+        <p class="warning-text">
+            {% trans "Are you sure you want to delete this address? This action cannot be undone." %}
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">{% trans "Yes, Delete" %}</button>
+                <a href="{% url 'accounts:address_list' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.delete-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.delete-card {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.delete-card h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.address-preview {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border-left: 4px solid #dc3545;
+}
+
+.address-preview h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.address-preview p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.warning-text {
+    color: #856404;
+    background: #fff3cd;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid #ffeaa7;
+    margin-bottom: 20px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+</style>
+{% endblock %}

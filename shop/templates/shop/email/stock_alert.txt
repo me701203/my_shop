@@ -1,0 +1,20 @@
+Good News! Your Product is Back in Stock
+Hello{% if user %} {{ user.get_full_name|default:user.username }}{% endif %},
+
+The product you requested a stock alert for is now available:
+
+Product: {{ product.safe_translation_getter:“name” }}
+
+{% if product.stock %}Stock: {{ product.stock }} units{% endif %}
+
+{% if product.price %}Price: ${{ product.price|floatformat:2 }}{% endif %}
+
+To view and purchase this product, visit:
+
+{{ product.get_absolute_url }}
+
+Note: Stock is limited. Act fast to secure your purchase.
+
+This email was sent automatically.
+
+© 2026 Our Shop. All rights reserved.

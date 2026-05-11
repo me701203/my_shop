@@ -1,0 +1,162 @@
+{% extends 'accounts/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "My Addresses" %}{% endblock %}
+
+{% block content %}
+<div class="addresses-container">
+    <div class="header-section">
+        <h2>{% trans "My Saved Addresses" %}</h2>
+        <a href="{% url 'accounts:address_create' %}" class="btn btn-primary">
+            {% trans "Add New Address" %}
+        </a>
+    </div>
+
+    {% if addresses %}
+        <div class="addresses-grid">
+            {% for address in addresses %}
+                <div class="address-card {% if address.is_default %}default-address{% endif %}">
+                    <div class="address-header">
+                        <h4>{{ address.label }}</h4>
+                        {% if address.is_default %}
+                            <span class="badge badge-primary">{% trans "Default" %}</span>
+                        {% endif %}
+                    </div>
+                    <div class="address-body">
+                        <p><strong>{{ address.first_name }} {{ address.last_name }}</strong></p>
+                        <p>{{ address.address }}</p>
+                        <p>{{ address.city }}, {{ address.postal_code }}</p>
+                    </div>
+                    <div class="address-actions">
+                        <a href="{% url 'accounts:address_edit' address.pk %}" class="btn btn-sm btn-secondary">
+                            {% trans "Edit" %}
+                        </a>
+                        <a href="{% url 'accounts:address_delete' address.pk %}" class="btn btn-sm btn-danger">
+                            {% trans "Delete" %}
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>{% trans "You haven't saved any addresses yet." %}</p>
+            <a href="{% url 'accounts:address_create' %}" class="btn btn-primary">
+                {% trans "Add Your First Address" %}
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.addresses-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.addresses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.address-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background: #fff;
+}
+
+.address-card.default-address {
+    border-color: #007bff;
+    background: #f8f9ff;
+}
+
+.address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.address-header h4 {
+    margin: 0;
+    color: #333;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-primary {
+    background: #007bff;
+    color: white;
+}
+
+.address-body p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.address-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.empty-state p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}

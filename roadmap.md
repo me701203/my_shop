@@ -1,347 +1,330 @@
-Ecommerce System Roadmap
-0. Foundations ✅ COMPLETED
-✔ Cart system
+E-Commerce Platform Development Roadmap
+Last Updated: 2026-05-07
 
-✔ Orders
+Current Phase: Staff Dashboard & Production Readiness
 
-✔ Checkout
+✅ Completed Features
+Phase 1: Critical Bugs & Core Logic
+✅ Cart system (add, update, remove, clear)
+✅ Order creation and payment flow
+✅ Product variants (size, color) with stock tracking
+✅ Variant selection UX (AJAX updates, stock validation)
+✅ Image pipeline (django-imagekit, thumbnails, WebP)
+✅ Product list caching with cache versioning
+✅ Recommendation engine (collaborative filtering, view tracking)
+✅ Reviews & ratings system
+✅ Order history page
+✅ Verified purchase badge for reviews
+✅ Stock alert subscription system (frontend + backend)
+✅ Wishlist functionality
+✅ Saved addresses for checkout
 
-✔ Payment gateways
+🔴 High Priority - Current Sprint (Week 1)
+1. Stock Alert Email System ⏱️ 1-2 days
+Status: Backend exists, needs automation
 
-✔ Payment verification safety
+Tasks:
 
-✔ Stock reservation system
+[ ] Create management command send_stock_alerts to check stock and send emails
+[ ] Design email template for stock back-in-stock notifications
+[ ] Add Celery periodic task (runs every 6-12 hours)
+[ ] Add StockAlert to Django admin for monitoring
+[ ] Test full flow:
+Subscribe to out-of-stock product
+Product comes back in stock
+Email sent automatically
+Alert marked as notified or deleted
+[ ] Add email preferences (opt-out link)
+Files to modify:
 
-✔ Stock validation
+shop/management/commands/send_stock_alerts.py (new)
+shop/templates/emails/stock_alert.html (new)
+shop/admin.py (register StockAlert)
+myproject/celery.py (add periodic task)
+shop/models.py (add notified_at field to StockAlert)
+2. Order History Bug Fixes ⏱️ 0.5 day
+Status: Implemented but has issues
 
-✔ Multilingual support
+Tasks:
 
-✔ django-parler translation system
+[ ] Identify and document the specific problem
+[ ] Fix the issue (likely filtering, permissions, or template rendering)
+[ ] Test edge cases (no orders, cancelled orders, refunds)
+3. Manual Testing & QA ⏱️ 1 day
+Goal: Validate all customer-facing features before moving to staff dashboard
 
-✔ Frontend messages & UX fixes
+Test Scenarios:
 
-✔ Category & product admin polish
+[ ] Full Purchase Flow: Browse → Add to cart → Checkout → Payment → Order confirmation
+[ ] Variant Selection: Change size/color, verify stock updates, out-of-stock handling
+[ ] Wishlist: Add/remove items, move to cart, persist across sessions
+[ ] Stock Alerts: Subscribe, verify badge count, manage alerts page, delete alerts
+[ ] Reviews: Submit review, verified badge shows only for purchased products
+[ ] Order History: View orders, filter by status, download invoice, reorder
+[ ] Saved Addresses: Add/edit/delete addresses, use in checkout
+[ ] Recommendations: Verify products appear based on view history
+[ ] Edge Cases:
+Empty cart checkout attempt
+Expired payment session
+Stock runs out during checkout
+Invalid coupon codes
+Concurrent stock updates
+Deliverable: Bug list with severity ratings
 
-✔ ProductVariant model
-
-✔ Variant translations
-
-✔ Initial caching (basic)
-
-✔ Error message improvements
-
-✔ Availability migration prepared (0005_sync_availability.py)
-
-Additional Completed Systems
-✔ Order fulfillment statuses
-
-✔ Shipment tracking system
-
-✔ Payment logging system
-
-✔ Invoice PDF generation
-
-✔ Coupon system
-
-✔ Item-level order cancellation
-
-✔ Item-level refund system
-
-✔ Refund approval workflow
-
-✔ RefundGuard validation service
-
-✔ Staff refund interface
-
-✔ Financial audit trail via PaymentLog
-
-1. Core Product Logic Fixes
-1.1 Stock‑safe + Variant‑safe category filtering
-Status: NEXT
-
-Goal:
-
-Category page must show only products that are actually available considering:
-
-• product stock
-
-• variant stock
-
-• auto-availability rules
-
-1.2 Strengthen availability rules for variants
-Status: AFTER 1.1
-
-Goal:
-
-text
-Product.available = True if either:
-
-product.stock > 0
-OR
-any variant.stock > 0
-1.3 Improve product list caching
-Status: SOON
-
-Goal:
-
-• Per-category cache
-
-• Per-product cache invalidation
-
-• Variant-aware invalidation
-
-• Faster frontend
-
-1.4 Availability sync migration
-Status: READY
-
-File:
-
-text
-0005_sync_availability.py
-Purpose:
-
-Fix old inconsistent availability states.
-
-2. Media/Image Pipeline (Performance Upgrade)
-Goals:
-
-• Automatically compress images
-
-• Automatically resize images
-
-• Auto-generate thumbnails
-
-• Serve responsive images
-
-• Dramatically speed up product & category views
-
-3. Variant UX Implementation
-Goals:
-
-• Beautiful variant selectors (size/color dropdowns)
-
-• Dynamic price loading per variant
-
-• Add-to-cart variant support
-
-• Show selected variant in cart and order
-
-• Variant stock validation
-
-4. Improved Recommendation Engine
-Upgrade recommender system to track behavior.
+🟡 Medium Priority - Staff Dashboard (Week 2)
+4. Sales Dashboard ⏱️ 2 days
+Goal: Real-time business metrics for staff
 
 Features:
 
-• Real similarity scores
+[ ] Revenue metrics (today, week, month, year)
+[ ] Order count and average order value
+[ ] Top 10 products by revenue
+[ ] Top 10 variants by quantity sold
+[ ] Sales trend chart (Chart.js or ApexCharts)
+[ ] Conversion rate (orders / sessions)
+[ ] Filter by date range
+Tech Stack:
+Django aggregation queries
+Chart.js for visualizations
+Cache dashboard data (refresh every 15 min)
+Files:
 
-• Track product views
+shop/views.py → staff_dashboard_view
+shop/templates/shop/staff_dashboard.html
+shop/urls.py → /staff/dashboard/
+Add permission check: @user_passes_test(lambda u: u.is_staff)
+5. Order Management Interface ⏱️ 2 days
+Goal: Efficient order processing for staff
 
-• Track orders
-
-• Track add-to-cart events
-
-• Cached recommendations
-
-5. PostgreSQL Full‑Text Search
-Goals:
-
-• Weighted search
-
-text
-name > description > category
-• Search indexes
-
-• Highlighting
-
-• Autocomplete
-
-• Related queries
-
-6. Discount & Coupon System ✅ PARTIALLY IMPLEMENTED
-Implemented:
-
-✔ Coupon model
-
-✔ Order discount support
-
-✔ Coupon usage tracking
-
-Planned improvements:
-
-• Percentage off
-
-• Fixed amount off
-
-• Date validity
-
-• Minimum cart value
-
-• Per-category coupons
-
-• Per-user coupons
-
-7. Reviews & Ratings
 Features:
 
-• Verified customers only
+[ ] Advanced filters (status, date range, customer, payment method)
+[ ] Search by order ID, customer email, product name
+[ ] Bulk actions:
+Mark as shipped (with tracking number input)
+Cancel orders (with refund option)
+Export to CSV
+[ ] Order detail modal with:
+Customer info
+Items + variants
+Payment status
+Shipping address
+Order events timeline
+[ ] Quick actions: Print invoice, send tracking email
+Files:
 
-• Rating stars
+shop/views.py → staff_orders_view, bulk_order_action
+shop/templates/shop/staff_orders.html
+shop/urls.py → /staff/orders/
+6. Stock Management Interface ⏱️ 1 day
+Goal: Prevent stockouts and overselling
 
-• Display rating average
-
-• Admin moderation
-
-• Helpfulness voting
-
-8. Operational Systems (Enterprise Features)
-A. Customer Account System
 Features:
 
-• Order history
+[ ] Product list with current stock levels
+[ ] Low stock alerts (configurable threshold, default < 10)
+[ ] Bulk stock update (CSV upload or inline editing)
+[ ] Stock history log (who changed, when, old/new values)
+[ ] Filter by: low stock, out of stock, overstocked
+Files:
 
-• Refund status
+shop/views.py → staff_stock_view, bulk_stock_update
+shop/models.py → StockHistory model (new)
+shop/templates/shop/staff_stock.html
+shop/urls.py → /staff/stock/
+7. Customer Insights ⏱️ 1 day
+Goal: Understand customer behavior
 
-• Invoice downloads
+Features:
 
-B. Order Event Timeline (Major Architecture Upgrade)
-Central order history system.
+[ ] Top 20 customers by total revenue
+[ ] Customer lifetime value (CLV) calculation
+[ ] Repeat purchase rate
+[ ] Abandoned cart tracking:
+Carts with items but no order in 24 hours
+Send reminder email (optional)
+[ ] Customer segmentation (new, active, at-risk, churned)
+Files:
 
-Tracks:
+shop/views.py → staff_customers_view
+shop/templates/shop/staff_customers.html
+shop/management/commands/send_abandoned_cart_emails.py (optional)
+🟢 Low Priority - Production Readiness (Week 3-4)
+Week 3: Security & Monitoring
+8. Sentry Integration ⏱️ 0.5 day
+[ ] Install sentry-sdk
+[ ] Configure in settings.py with DSN
+[ ] Test error tracking (trigger test exception)
+[ ] Set up alerts for critical errors
+9. Structured Logging ⏱️ 0.5 day
+[ ] Configure logging in settings.py:
+File handler for errors
+Console handler for development
+JSON formatter for production
+[ ] Add logging to critical paths:
+Payment processing
+Order creation
+Stock updates
+Email sending
+10. Security Audit ⏱️ 1 day
+[ ] Run python manage.py check --deploy
+[ ] Fix all warnings
+[ ] OWASP Top 10 checklist:
+SQL injection (use ORM, no raw queries)
+XSS (template auto-escaping enabled)
+CSRF (tokens on all forms)
+Insecure deserialization
+Sensitive data exposure (no secrets in logs)
+[ ] Review authentication:
+Password strength requirements
+Rate limiting on login
+Session timeout
+[ ] Review authorization:
+All staff views require is_staff
+Users can only access their own orders/data
+11. Rate Limiting ⏱️ 0.5 day
+[ ] Install django-ratelimit
+[ ] Apply to:
+Login/registration (5 attempts per 15 min)
+Password reset (3 attempts per hour)
+Review submission (5 per hour)
+Stock alert subscription (10 per hour)
+Contact form (3 per hour)
+Week 4: DevOps & Performance
+12. CI/CD Pipeline ⏱️ 1 day
+GitHub Actions workflow:
 
-• Order created
+[ ] Run tests on every push
+[ ] Check code style (flake8, black)
+[ ] Security scan (bandit, safety)
+[ ] Build Docker image
+[ ] Deploy to staging on merge to develop
+[ ] Deploy to production on merge to main (manual approval)
+Files:
 
-• Payment success
+.github/workflows/ci.yml
+.github/workflows/deploy.yml
+13. Load Testing ⏱️ 1 day
+[ ] Install Locust
+[ ] Write test scenarios:
+Browse products (80% of traffic)
+Add to cart (15%)
+Checkout (5%)
+[ ] Run tests:
+Target: 100 concurrent users
+Goal: < 500ms response time for 95th percentile
+No errors under normal load
+[ ] Identify bottlenecks (database queries, cache misses)
+[ ] Optimize slow queries
+Files:
 
-• Item cancelled
+locustfile.py
+14. Monitoring Setup ⏱️ 1 day
+Option A: Simple (Recommended for MVP)
+[ ] Django Debug Toolbar (development only)
+[ ] django-silk for profiling
+[ ] Uptime monitoring (UptimeRobot or Pingdom)
+Option B: Advanced (Post-Launch)
 
-• Refund issued
+[ ] Prometheus + Grafana
+[ ] Metrics: request rate, error rate, response time, database connections
+[ ] Alerts: error rate > 1%, response time > 1s
+🔵 Month 2: Testing & Polish
+15. Expand Test Coverage ⏱️ 1 week
+Current Coverage: ~40% (estimated)
 
-• Shipment sent
+Target: 80%+
 
-• Delivery confirmed
+Priority Areas:
 
-Used for:
+[ ] Payment flow (mock Stripe API)
+[ ] Order creation edge cases
+[ ] Stock alert email sending
+[ ] Variant stock validation
+[ ] Cart operations (concurrent updates)
+[ ] Review submission (verified badge logic)
+[ ] Wishlist operations
+[ ] Saved address CRUD
+Tools:
 
-• Admin debugging
+pytest-django
+coverage.py
+factory_boy for test data
+16. Final Staging Deployment ⏱️ 2 days
+[ ] Deploy to staging environment
+[ ] Run full regression test suite
+[ ] Performance test with production-like data
+[ ] Security scan
+[ ] Accessibility audit (WCAG 2.1 AA)
+[ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+[ ] Mobile responsiveness check
+17. Launch Preparation ⏱️ 3 days
+[ ] Write deployment runbook
+[ ] Set up database backups (daily, retain 30 days)
+[ ] Configure CDN for static files
+[ ] Set up SSL certificate (Let’s Encrypt)
+[ ] Create monitoring dashboard
+[ ] Prepare rollback plan
+[ ] Train staff on dashboard usage
+[ ] Write user documentation (FAQ, how-to guides)
+18. Launch 🚀 ⏱️ 1 day
+[ ] Deploy to production
+[ ] Smoke test critical paths
+[ ] Monitor error rates and performance
+[ ] Be ready for hotfixes
+🎯 Success Metrics
+Technical:
 
-• Customer order timeline
+Test coverage > 80%
+Page load time < 2s (95th percentile)
+Zero critical security vulnerabilities
+Uptime > 99.5%
+Business:
 
-• Analytics
+Checkout completion rate > 60%
+Average order value > $50
+Customer retention rate > 30%
+Stock alert conversion rate > 15%
 
-• Notifications
 
-C. Staff Operations Dashboard
-Operations control center.
+Core Features:
 
-Displays:
+Order Management (High Priority)
 
-• Pending orders
+View all orders with filtering (status, date, customer)
+Update order status (processing, shipped, delivered, cancelled)
+View order details and customer info
+Print/export invoices
+Sales Reports & Analytics (High Priority)
 
-• Refund requests
+Revenue reports (daily, weekly, monthly)
+Best-selling products
+Low-performing products
+Customer analytics
+Customer Management
 
-• Shipment queue
+View customer list
+View customer order history
+Customer activity tracking
+Discount/Coupon Management
 
-• Payment failures
+Create and manage discount codes
+Set expiration dates and usage limits
+Track coupon usage
+Staff Activity Logs
 
-D. Return / RMA System
-Full return management system.
+Audit trail for all staff actions
+View who changed what and when
 
-Workflow:
 
-text
-Customer requests return
-↓
-Staff reviews request
-↓
-Return approved
-↓
-Customer ships item back
-↓
-Item received
-↓
-Refund issued
-Required for professional ecommerce.
 
-9. Optional Future Expansions
-• CMS
+for celery
+celery -A myshop worker -l info -P solo
 
-• Tagging system
+flower
+celery -A myshop flower
+http://localhost:5555/tasks
 
-• Marketplace (multi-seller)
-
-• REST API
-
-• Mobile app backend
-
-• Realtime notifications (Django Channels)
-
-• Docker + Nginx production deployment
-
-action plan regarding this roadmap:
-
-Phase 1: Fix Critical Bugs (Do This First)
-Fix variant stock restoration in expire_reserved_orders ⚠️
-Add idempotency check in payment_verify ⚠️
-Fix coupon usage increment timing ⚠️
-Add rate limiting to payment endpoints ⚠️
-Add webhook signature verification (if using real gateways) ⚠️
-Phase 2: Complete Roadmap Section 1 (Core Logic)
-Implement stock-safe category filtering
-Fix variant availability auto-update
-Run availability sync migration
-Improve product list caching
-Phase 3: UX Improvements
-Add variant selectors to product pages
-Add search functionality
-Optimize images (compression + thumbnails)
-Phase 4: Customer Features
-Add customer order history
-Add order event timeline
-Add reviews/ratings
-Phase 5: Production Readiness
-Switch to PostgreSQL
-Add proper logging (Sentry)
-Add monitoring
-Write tests
-Set up CI/CD
-
-Key Dependencies by Feature
-Feature	Required Files	Models Touched
-Order with Product (no variant)	orders/models.py, shop/models.py	Order, OrderItem, Product
-Order with ProductVariant	orders/models.py, shop/models.py	Order, OrderItem, Product, ProductVariant
-Coupon Application	coupon/models.py, orders/models.py	Coupon, Order
-Payment Request	payment/views.py, payment/gateways/*.py, payment/models.py	Order, PaymentLog
-Payment Verify (Success)	payment/views.py, payment/gateways/*.py, orders/models.py, coupon/models.py	Order, OrderItem, Coupon, PaymentLog, Product/ProductVariant
-Payment Verify (Failure)	payment/views.py, payment/gateways/*.py, shop/models.py	Order, Product/ProductVariant, PaymentLog
-Order Expiration	orders/tasks.py, orders/models.py, shop/models.py	Order, OrderItem, Product/ProductVariant
-Rate Limiting	payment/views.py (django-ratelimit decorator)	None (HTTP response only)
-Refund	payment/views.py, payment/models.py, orders/models.py	Refund, OrderItem, Order, PaymentLog
-
-Critical Test Scenarios (What We Need to Cover)
-Scenario	Gateway	Expected Behavior	Files Needed
-Simple order, no coupon, payment success	Fake	Stock stays reduced, order paid	payment/views.py, shop/models.py, orders/models.py
-Order with coupon, payment success	Fake	Coupon.uses += 1 (once only)	+ coupon/models.py
-Order with variant, payment success	Fake	Variant stock stays reduced	+ shop/models.py (ProductVariant)
-Payment failure	Fake	Stock restored immediately	All above
-Order expiration (15 min timeout)	N/A	Stock restored by Celery task	+ orders/tasks.py
-Rate limiting (>10 requests/min)	Fake	Returns 429	payment/views.py only
-Idempotency (revisit success URL)	Fake	No double-processing	payment/views.py, orders/models.py
-Anti-replay (reuse ref_id)	Fake	Rejected	payment/views.py, orders/models.py
-Authority tampering	Fake	Rejected	payment/views.py
-
-Test Suite Structure (9 tests total, 3 batches)
-Batch 1: Core Payment Success Flows (Foundation)
-test_simple_order_payment_success - Simple product, no coupon, fake gateway success
-test_order_with_coupon_payment_success - Verify coupon increments once only
-test_order_with_variant_payment_success - Variant stock handling
-Batch 2: Failure & Recovery (Stock restoration)
-test_payment_failure_restores_stock - Product stock restored on payment failure
-test_payment_failure_restores_variant_stock - Variant stock restored on payment failure
-test_order_expiration_task - Celery task restores stock after 15 min timeout
-Batch 3: Security & Edge Cases (Anti-abuse)
-test_rate_limiting_returns_429 - Rate limit protection
-test_idempotency_prevents_double_processing - Revisiting success URL
-test_anti_replay_rejects_reused_ref_id - Payment reference reuse blocked
+celery beat
+celery -A myshop beat -l info

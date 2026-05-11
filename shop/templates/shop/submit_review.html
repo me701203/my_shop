@@ -1,0 +1,17 @@
+{% extends "shop/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Review" %} {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>{% trans "Write a Review for" %} {{ product.name }}</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% trans "Submit Review" %}</button>
+        <a href="{% url 'shop:product_detail' slug=product.slug %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+    </form>
+</div>
+{% endblock %}

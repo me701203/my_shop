@@ -9,6 +9,8 @@ from shop import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("accounts/", include("accounts.urls")),
+    path("staff/", include("staff.urls", namespace="staff")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("set-digits/", views.set_digits, name="set_digits"),
     path("rosetta/", include("rosetta.urls")),

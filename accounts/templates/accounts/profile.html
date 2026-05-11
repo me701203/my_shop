@@ -1,0 +1,32 @@
+{% extends 'accounts/base.html' %}
+{% load i18n %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h2>{% trans "User Profile" %}</h2>
+<p><strong>{% trans "Email" %}:</strong> {{ user.email }}</p>
+<p><strong>{% trans "Phone" %}:</strong> {{ user.phone_number|default:"Not provided" }}</p>
+<p><strong>{% trans "Date of Birth" %}:</strong> {{ user.date_of_birth|default:"Not provided" }}</p>
+<p><strong>{% trans "Member since" %}:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{% trans "My Orders" %}</h5>
+        <p class="card-text">{% trans "View your order history and track shipments" %}</p>
+        <a href="{% url 'orders:order_history' %}"" class="btn btn-primary">
+            {% trans "View Order History" %}
+        </a>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{% trans "My Addresses" %}</h5>
+        <p class="card-text">{% trans "Manage your saved shipping addresses" %}</p>
+        <a href="{% url 'accounts:address_list' %}" class="btn btn-primary">
+            {% trans "Manage Addresses" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

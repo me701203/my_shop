@@ -1,0 +1,32 @@
+{% extends "staff/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2 style="margin-bottom:20px;">Dashboard</h2>
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="number">{{ total_orders }}</div>
+        <div class="label">Total Orders</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#f59e0b;">{{ needs_attention }}</div>
+        <div class="label">Needs Attention</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#8b5cf6;">{{ ready_to_ship }}</div>
+        <div class="label">Ready to Ship</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#ef4444;">{{ problem_orders }}</div>
+        <div class="label">Problem Orders</div>
+    </div>
+</div>
+<div class="card">
+    <a href="{% url 'staff:order_list' %}" class="btn btn-primary">View All Orders →</a>
+    &nbsp;
+    <a href="{% url 'staff:order_list' %}?quick=needs_attention" class="btn btn-primary" style="background:#f59e0b;">Needs Attention</a>
+    &nbsp;
+    <a href="{% url 'staff:order_list' %}?quick=ready_to_ship" class="btn btn-primary" style="background:#8b5cf6;">Ready to Ship</a>
+    &nbsp;
+    <a href="{% url 'staff:order_list' %}?quick=problem" class="btn btn-primary" style="background:#ef4444;">Problem Orders</a>
+</div>
+{% endblock %}

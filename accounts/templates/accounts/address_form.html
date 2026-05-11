@@ -1,0 +1,278 @@
+{% extends 'accounts/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>{{ title }}</h2>
+    
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+    
+    <form method="post" class="address-form" novalidate>
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.label.id_for_label }}">
+                {{ form.label.label }} <span class="required">*</span>
+            </label>
+            {{ form.label }}
+            {% if form.label.help_text %}
+                <small class="form-text">{{ form.label.help_text }}</small>
+            {% endif %}
+            {% if form.label.errors %}
+                <div class="error">{{ form.label.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}">
+                    {{ form.first_name.label }} <span class="required">*</span>
+                </label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <div class="error">{{ form.first_name.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.last_name.id_for_label }}">
+                    {{ form.last_name.label }} <span class="required">*</span>
+                </label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <div class="error">{{ form.last_name.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.address.id_for_label }}">
+                {{ form.address.label }} <span class="required">*</span>
+            </label>
+            {{ form.address }}
+            {% if form.address.errors %}
+                <div class="error">{{ form.address.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.city.id_for_label }}">
+                    {{ form.city.label }} <span class="required">*</span>
+                </label>
+                {{ form.city }}
+                {% if form.city.errors %}
+                    <div class="error">{{ form.city.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.postal_code.id_for_label }}">
+                    {{ form.postal_code.label }} <span class="required">*</span>
+                </label>
+                {{ form.postal_code }}
+                {% if form.postal_code.errors %}
+                    <div class="error">{{ form.postal_code.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group checkbox-group">
+            {{ form.is_default }}
+            <label for="{{ form.is_default.id_for_label }}">{{ form.is_default.label }}</label>
+            {% if form.is_default.errors %}
+                <div class="error">{{ form.is_default.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <span class="btn-icon">💾</span> {% trans "Save Address" %}
+            </button>
+            <a href="{% url 'accounts:address_list' %}" class="btn btn-secondary">
+                {% trans "Cancel" %}
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.address-form {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.alert {
+    padding: 12px 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.required {
+    color: #dc3545;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+.form-group input.error,
+.form-group input[type="text"]:invalid:not(:focus),
+.form-group input[type="email"]:invalid:not(:focus) {
+    border-color: #dc3545;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.form-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.error {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 5px;
+    display: block;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Client-side validation feedback
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.address-form');
+    const inputs = form.querySelectorAll('input[type="text"]');
+    
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === '' && this.required) {
+                this.classList.add('error');
+            } else {
+                this.classList.remove('error');
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            this.classList.remove('error');
+        });
+    });
+});
+</script>
+{% endblock %}

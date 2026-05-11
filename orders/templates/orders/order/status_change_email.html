@@ -1,0 +1,19 @@
+{% load i18n %}
+
+{% trans "Dear" %} {{ order.first_name }},
+
+{% trans "Your order status has been updated:" %}
+
+{% trans "Order #" %}{{ order.id }}
+{% trans "Previous Status:" %} {{ old_status }}
+{% trans "New Status:" %} {{ new_status }}
+
+{% if order.fulfillment_status == 'shipped' and order.shipment.tracking_code %}
+{% trans "Tracking Code:" %} {{ order.shipment.tracking_code }}
+{% trans "Carrier:" %} {{ order.shipment.get_carrier_display }}
+{% endif %}
+
+{% trans "You can view your order details at:" %}
+http://{{ request.get_host }}{{ order.get_absolute_url }}
+
+{% trans "Thank you for your order!" %}

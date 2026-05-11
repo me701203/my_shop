@@ -1,0 +1,341 @@
+{% extends "staff/base.html" %}
+
+{% load static %}
+
+{% load currency_filters %}
+
+{% block title %}Sales Dashboard{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+  <div>
+    <h2 style="margin: 0;">Sales Dashboard</h2>
+    <p style="color: #888; font-size: 14px; margin: 4px 0 0 0;">
+      {{ start|date:"M d, Y" }} — {{ end|date:"M d, Y" }}
+    </p>
+  </div>
+  <div style="display: flex; gap: 8px;">
+    <a href="?days=7" class="quick-btn {% if days == 7 %}active{% endif %}">7d</a>
+    <a href="?days=30" class="quick-btn {% if days == 30 %}active{% endif %}">30d</a>
+    <a href="?days=90" class="quick-btn {% if days == 90 %}active{% endif %}">90d</a>
+  </div>
+</div>
+
+{# KPI Cards #}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+  <div class="card" style="padding: 20px;">
+    <p style="color: #888; font-size: 13px; margin: 0 0 8px 0; font-weight: 500;">Total Revenue</p>
+    <p style="font-size: 32px; font-weight: 700; margin: 0 0 4px 0;">{{ revenue|currency }}</p>
+    <p style="color: #aaa; font-size: 12px; margin: 0;">Paid orders · last {{ days }} days</p>
+  </div>
+  <div class="card" style="padding: 20px;">
+    <p style="color: #888; font-size: 13px; margin: 0 0 8px 0; font-weight: 500;">Orders Paid</p>
+    <p style="font-size: 32px; font-weight: 700; margin: 0 0 4px 0;">{{ order_count }}</p>
+    <p style="color: #aaa; font-size: 12px; margin: 0;">Successful payments · last {{ days }} days</p>
+  </div>
+  <div class="card" style="padding: 20px;">
+    <p style="color: #888; font-size: 13px; margin: 0 0 8px 0; font-weight: 500;">Avg. Order Value</p>
+    <p style="font-size: 32px; font-weight: 700; margin: 0 0 4px 0;">{{ aov|currency }}</p>
+    <p style="color: #aaa; font-size: 12px; margin: 0;">Revenue ÷ paid orders</p>
+  </div>
+</div>
+
+{# Revenue Trend Chart #}
+<div class="card" style="padding: 20px; margin-bottom: 24px;">
+  <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Revenue Trend</h3>
+  <div id="revenue-chart" style="min-height: 280px;"></div>
+</div>
+
+{# Bottom Row: Top Products + Status Breakdown #}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px; margin-bottom: 24px;">
+  
+  {# Top Products Table #}
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div style="padding: 20px 20px 16px 20px;">
+      <h3 style="margin: 0; font-size: 16px; font-weight: 600;">Top Products by Revenue</h3>
+    </div>
+    {% if top_products %}
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 40px;">#</th>
+          <th>Product</th>
+          <th style="text-align: right;">Units</th>
+          <th style="text-align: right;">Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in top_products %}
+        <tr>
+          <td style="color: #aaa;">{{ forloop.counter }}</td>
+          <td style="font-weight: 500;">{{ product.product_name }}</td>
+          <td style="text-align: right;">{{ product.units_sold }}</td>
+          <td style="text-align: right;">{{ product.revenue|currency }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #888; padding: 40px 20px;">No sales data for this period.</p>
+    {% endif %}
+  </div>
+
+  {# Orders by Fulfillment Status (Donut) #}
+  <div class="card" style="padding: 20px;">
+    <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Orders by Status</h3>
+    <div id="status-chart" style="min-height: 280px;"></div>
+  </div>
+</div>
+
+{# Top Variants Table (full width) #}
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div style="padding: 20px 20px 16px 20px;">
+    <h3 style="margin: 0; font-size: 16px; font-weight: 600;">Top Variants by Units Sold</h3>
+  </div>
+  {% if top_variants %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 40px;">#</th>
+        <th>Product</th>
+        <th>Variant</th>
+        <th style="text-align: right;">Units Sold</th>
+        <th style="text-align: right;">Revenue</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in top_variants %}
+      <tr>
+        <td style="color: #aaa;">{{ forloop.counter }}</td>
+        <td style="font-weight: 500;">{{ v.product_name }}</td>
+        <td style="color: #666; font-size: 14px;">{{ v.variant }}</td>
+        <td style="text-align: right;">{{ v.quantity }}</td>
+        <td style="text-align: right;">{{ v.revenue|currency }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="text-align: center; color: #888; padding: 40px 20px;">No variant data for this period.</p>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/apexcharts.min.js' %}"></script>
+<script>
+(function () {
+  "use strict";
+
+  const CURRENCY = "{{ currency_symbol|escapejs }}";
+  const DEMO_MODE = {{ order_count }} === 0; // Enable demo mode if no orders
+
+  // Parse data from backend
+  let trendData = [];
+  let statusData = [];
+  
+  try {
+    const rawTrend = {{ revenue_trend_json|safe }};
+    trendData = Array.isArray(rawTrend) ? rawTrend : [];
+  } catch (e) {
+    console.error("Failed to parse revenue trend data:", e);
+    trendData = [];
+  }
+
+  try {
+    const rawStatus = {{ fulfillment_status_json|safe }};
+    statusData = Array.isArray(rawStatus) ? rawStatus : [];
+  } catch (e) {
+    console.error("Failed to parse status data:", e);
+    statusData = [];
+  }
+
+  // Debug output
+  console.log("=== Dashboard Data Debug ===");
+  console.log("Demo mode:", DEMO_MODE);
+  console.log("Revenue trend points:", trendData.length);
+  console.log("Status data points:", statusData.length);
+  if (trendData.length > 0) {
+    console.log("Sample trend data:", trendData[0]);
+  }
+  if (statusData.length > 0) {
+    console.log("Sample status data:", statusData[0]);
+  }
+
+  // Generate demo data if needed
+  if (DEMO_MODE || trendData.length === 0) {
+    console.log("Using demo revenue data");
+    const today = new Date();
+    trendData = [];
+    for (let i = {{ days }} - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      trendData.push({
+        date: date.toISOString().split('T')[0],
+        revenue: Math.random() * 5000 + 1000
+      });
+    }
+  }
+
+  if (DEMO_MODE || statusData.length === 0) {
+    console.log("Using demo status data");
+    statusData = [
+      { status: "pending", label: "Pending", count: 12 },
+      { status: "confirmed", label: "Confirmed", count: 8 },
+      { status: "packaging", label: "Packaging", count: 5 },
+      { status: "shipped", label: "Shipped", count: 15 },
+      { status: "delivered", label: "Delivered", count: 45 },
+      { status: "cancelled", label: "Cancelled", count: 3 }
+    ];
+  }
+
+  // Revenue Trend Chart
+  const revenueChartOptions = {
+    chart: { 
+      type: "area", 
+      height: 280, 
+      toolbar: { show: false }, 
+      zoom: { enabled: false }, 
+      fontFamily: "inherit" 
+    },
+    series: [{
+      name: "Revenue",
+      data: trendData.map(d => ({
+        x: new Date(d.date).getTime(),
+        y: parseFloat(d.revenue) || 0
+      }))
+    }],
+    xaxis: {
+      type: "datetime",
+      labels: {
+        style: { colors: "#9ca3af", fontSize: "12px" },
+        datetimeFormatter: {
+          year: 'yyyy',
+          month: "MMM 'yy",
+          day: 'dd MMM',
+          hour: 'HH:mm'
+        }
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false }
+    },
+    yaxis: {
+      labels: {
+        style: { colors: "#9ca3af", fontSize: "12px" },
+        formatter: function(val) {
+          return val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " " + CURRENCY;
+        }
+      }
+    },
+    stroke: { curve: "smooth", width: 2 },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.35,
+        opacityTo: 0.02,
+        stops: [0, 100]
+      }
+    },
+    colors: ["#6366f1"],
+    dataLabels: { enabled: false },
+    grid: { borderColor: "#f3f4f6", strokeDashArray: 4 },
+    tooltip: {
+      x: { format: "MMM dd, yyyy" },
+      y: {
+        formatter: function(val) {
+          return val.toLocaleString() + " " + CURRENCY;
+        }
+      }
+    },
+    noData: {
+      text: "No revenue data available",
+      align: 'center',
+      verticalAlign: 'middle',
+      style: {
+        color: '#999',
+        fontSize: '14px'
+      }
+    }
+  };
+
+  const revenueChart = new ApexCharts(document.getElementById("revenue-chart"), revenueChartOptions);
+  revenueChart.render();
+
+  // Status Chart (Donut)
+  const STATUS_COLORS = {
+    pending: "#f59e0b",
+    confirmed: "#3b82f6",
+    packaging: "#8b5cf6",
+    shipped: "#06b6d4",
+    delivered: "#10b981",
+    cancelled: "#ef4444"
+  };
+
+  const statusChartOptions = {
+    chart: {
+      type: "donut",
+      height: 280,
+      fontFamily: "inherit"
+    },
+    series: statusData.map(d => parseInt(d.count) || 0),
+    labels: statusData.map(d => d.label || 'Unknown'),
+    colors: statusData.map(d => STATUS_COLORS[d.status] || "#6b7280"),
+    legend: {
+      position: "bottom",
+      fontSize: "13px",
+      labels: { colors: "#374151" }
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function(val) {
+        return val.toFixed(1) + "%";
+      }
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "65%",
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: "Total",
+              color: "#374151",
+              formatter: function(w) {
+                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+              }
+            }
+          }
+        }
+      }
+    },
+    tooltip: {
+      y: {
+        formatter: function(val) {
+          return val + " orders";
+        }
+      }
+    },
+    noData: {
+      text: "No orders available",
+      align: 'center',
+      verticalAlign: 'middle',
+      style: {
+        color: '#999',
+        fontSize: '14px'
+      }
+    }
+  };
+
+  const statusChart = new ApexCharts(document.getElementById("status-chart"), statusChartOptions);
+  statusChart.render();
+
+  if (DEMO_MODE) {
+    console.log("%c📊 Demo Mode Active", "color: #f59e0b; font-weight: bold; font-size: 14px;");
+    console.log("Charts are showing sample data. Add real orders to see actual analytics.");
+  }
+})();
+</script>
+{% endblock %}

@@ -488,3 +488,27 @@ form div.field {
 [dir="rtl"] #subheader .cart {
     float: left;
 }
+
+/* ==============================
+   Badge Style
+============================== */
+
+.cart {
+    position: relative;
+}
+
+.cart-badge {
+    display: inline-block;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0 6px;
+    margin-left: 5px;
+    vertical-align: middle;
+}

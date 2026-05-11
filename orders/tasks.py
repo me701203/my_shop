@@ -6,6 +6,8 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.db.models import F
 from django.utils import timezone
+from django.utils.translation import gettext as _
+
 from .utils import generate_invoice_pdf  # <-- IMPORTANT
 
 from .models import Order
@@ -129,3 +131,121 @@ def expire_reserved_orders():
             count += 1
 
     return f"{count} expired orders processed."
+
+
+@shared_task
+def send_status_change_email(order_id, old_status, new_status):
+    """
+    Task to send email notification when order status changes.
+    """
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+    from django.utils.translation import gettext as _
+    from .models import Order
+
+    order = Order.objects.get(id=order_id)
+
+    subject = _("Order #%(order_id)s Status Update") % {"order_id": order.id}
+
+    message = render_to_string(
+        "orders/order/status_change_email.html",
+        {
+            "order": order,
+            "old_status": old_status,
+            "new_status": new_status,
+        },
+    )
+
+    mail_sent = send_mail(subject, message, "admin@myshop.com", [order.email])
+
+    return mail_sent
+
+
+@shared_task
+def send_order_confirmation_email(order_id):
+    """
+    Send order confirmation email to customer.
+    """
+    try:
+        order = Order.objects.get(id=order_id)
+
+        subject = f"تایید سفارش - #{order.id}"
+
+        html_message = render_to_string(
+            "orders/email/order_confirmation.html",
+            {
+                "order": order,
+            },
+        )
+
+        plain_message = render_to_string(
+            "orders/email/order_confirmation.txt",
+            {
+                "order": order,
+            },
+        )
+
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[order.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+        logger.info(f"Order confirmation email sent for order {order_id}")
+        return f"Email sent successfully for order {order_id}"
+
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        return f"Order {order_id} not found"
+    except Exception as e:
+        logger.error(f"Error sending confirmation email: {str(e)}")
+        return f"Error sending email: {str(e)}"
+
+
+@shared_task
+def send_shipment_notification_email(order_id, tracking_number=None):
+    """
+    Send shipping notification email.
+    """
+    try:
+        order = Order.objects.get(id=order_id)
+
+        subject = f"سفارش شما ارسال شد - #{order.id}"
+
+        html_message = render_to_string(
+            "orders/email/shipment_notification.html",
+            {
+                "order": order,
+                "tracking_number": tracking_number,
+            },
+        )
+
+        plain_message = render_to_string(
+            "orders/email/shipment_notification.txt",
+            {
+                "order": order,
+                "tracking_number": tracking_number,
+            },
+        )
+
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[order.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+
+        logger.info(f"Shipment email sent for order {order_id}")
+        return f"Shipment email sent for order {order.id}"
+
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        return f"Order {order_id} not found"
+    except Exception as e:
+        logger.error(f"Error sending shipment email: {str(e)}")
+        return f"Error sending email: {str(e)}"

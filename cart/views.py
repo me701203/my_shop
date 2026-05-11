@@ -24,54 +24,45 @@ def cart_add(request, product_id):
         quantity = cd["quantity"]
         override = cd["override"]
 
-        # Variant-aware STOCK CHECK
-        if variant_id:
-            try:
-                variant = ProductVariant.objects.get(id=variant_id, product=product)
-            except ProductVariant.DoesNotExist:
-                if is_ajax:
-                    return JsonResponse(
-                        {"ok": False, "error": "Invalid variant selected."},
-                        status=400,
-                    )
-                messages.error(request, _("Invalid variant selected."))
-                return redirect("cart:cart_detail")
-
-            if not variant.is_in_stock() or quantity > variant.stock:
-                if is_ajax:
-                    return JsonResponse(
-                        {"ok": False, "error": _("Not enough stock for this variant.")},
-                        status=400,
-                    )
-                messages.error(
-                    request, _("Not enough stock available for this variant.")
+        # Validate variant requirement
+        if product.variants.exists() and not variant_id:
+            error_msg = _("Please select a variant for this product.")
+            if is_ajax:
+                return JsonResponse(
+                    {"ok": False, "error": error_msg},
+                    status=400,
                 )
-                return redirect("cart:cart_detail")
+            messages.error(request, error_msg)
+            return redirect("shop:product_detail", id=product.id, slug=product.slug)
 
-        else:
-            # Product WITHOUT variants
-            if not product.is_in_stock() or quantity > product.stock:
-                if is_ajax:
-                    return JsonResponse(
-                        {"ok": False, "error": "Not enough stock available."},
-                        status=400,
-                    )
-                messages.error(request, _("Not enough stock available."))
-                return redirect("cart:cart_detail")
-
-        # If stock OK → add/update cart
-        cart.add(
+        # Use the improved Cart.add() method which now handles all validation
+        success, error_msg, available_stock = cart.add(
             product=product,
             quantity=quantity,
             override_quantity=override,
             variant_id=variant_id,
         )
 
+        if not success:
+            # Stock validation failed
+            if is_ajax:
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "error": error_msg,
+                        "available_stock": available_stock,
+                    },
+                    status=400,
+                )
+            messages.error(request, error_msg)
+            return redirect("shop:product_detail", id=product.id, slug=product.slug)
+
+        # Success - return updated cart data
         if is_ajax:
             # Recompute totals from cart
             total_price = cart.get_total_price()
-            # Also find this line's total (optional but useful)
-            # The key we are updating
+
+            # Find this line's total
             variant_key = str(variant_id) if variant_id else "default"
             key = f"{product.id}:{variant_key}"
             line = cart.cart[key]
@@ -83,16 +74,34 @@ def cart_add(request, product_id):
             return JsonResponse(
                 {
                     "ok": True,
+                    "message": _("Product added to cart successfully."),
                     "cart_total": str(total_price),
                     "line_total": str(line_total),
                     "line_quantity": line["quantity"],
                     "discount": str(discount),
                     "total_after_discount": str(total_after_discount),
+                    "available_stock": available_stock,
                 }
             )
 
-    # fallback: normal behavior
-    return redirect("cart:cart_detail")
+        messages.success(request, _("Product added to cart successfully."))
+        return redirect("cart:cart_detail")
+
+    else:
+        # Form validation failed
+        error_msg = _("Invalid form data.")
+        if form.errors:
+            # Get first error message
+            first_error = list(form.errors.values())[0][0]
+            error_msg = first_error
+
+        if is_ajax:
+            return JsonResponse(
+                {"ok": False, "error": error_msg},
+                status=400,
+            )
+        messages.error(request, error_msg)
+        return redirect("shop:product_detail", id=product.id, slug=product.slug)
 
 
 @require_POST
@@ -112,50 +121,53 @@ def cart_remove(request, product_id):
 
     if is_ajax:
         total_price = cart.get_total_price()
+        discount = cart.get_discount()
+        total_after_discount = cart.get_total_price_after_discount()
+
         return JsonResponse(
             {
                 "ok": True,
                 "cart_total": str(total_price),
+                "discount": str(discount),
+                "total_after_discount": str(total_after_discount),
                 "removed": existed,
             }
         )
 
+    messages.success(request, _("Item removed from cart."))
     return redirect("cart:cart_detail")
 
 
 def cart_detail(request):
     cart = Cart(request)
-    stock_issue = False
-    stock_adjustments = []
 
-    for item in cart:
-        product = item["product"]
-        quantity = item["quantity"]
-        variant = item.get("variant")
+    # Atomically revalidate stock and get adjustment details
+    revalidation_result = cart.revalidate_stock()
 
-        # Check stock depending on variant vs no variant
-        if variant:
-            available = variant.stock
-        else:
-            available = product.stock
+    stock_issue = revalidation_result["changed"]
+    stock_adjustments = revalidation_result["adjustments"]
 
-        # If quantity exceeds available stock:
-        if available < quantity:
-            stock_issue = True
+    # Show messages for adjustments
+    if stock_adjustments:
+        for adj in stock_adjustments:
+            product_name = adj["product"].name
+            if adj["variant"]:
+                product_name += f" ({adj['variant'].name})"
 
-            # auto-adjust (but do NOT save to session yet)
-            stock_adjustments.append(
-                {
-                    "key": item["key"],  # unique cart line key
-                    "old_qty": quantity,
-                    "new_qty": available,
-                    "product": product,
-                    "variant": variant,
-                }
-            )
-    # Auto-apply quantity reductions in the session
-    for adj in stock_adjustments:
-        cart.set_quantity(adj["key"], adj["new_qty"])
+            if adj["new_qty"] == 0:
+                messages.warning(
+                    request,
+                    _(
+                        f"{product_name} is out of stock and was removed from your cart."
+                    ),
+                )
+            else:
+                messages.warning(
+                    request,
+                    _(
+                        f"{product_name} quantity reduced from {adj['old_qty']} to {adj['new_qty']} due to limited stock."
+                    ),
+                )
 
     return render(
         request,

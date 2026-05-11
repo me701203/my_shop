@@ -1,0 +1,121 @@
+{% extends "staff/base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block content %}
+<div style="margin-bottom:16px;">
+    <a href="{% url 'staff:order_list' %}">&larr; Back to Orders</a>
+</div>
+
+<h2 style="margin-bottom:20px;">Order #{{ order.id }}</h2>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+    {# Customer & Address #}
+    <div class="card">
+        <h3 style="margin-bottom:12px; font-size:15px;">Customer</h3>
+        <p>{{ order.first_name }} {{ order.last_name }}</p>
+        <p style="color:#888;">{{ order.email }}</p><hr style="margin:12px 0; border:none; border-top:1px solid #eee;">
+        <p>{{ order.address }}</p>
+        <p>{{ order.city }}, {{ order.postal_code }}</p>
+    </div>
+
+    {# Order Status #}
+    <div class="card">
+        <h3 style="margin-bottom:12px; font-size:15px;">Status</h3>
+        <table style="width:auto;">
+            <tr><td style="padding:4px 12px 4px 0; color:#888;">Fulfillment</td><td><span class="badge badge-{{ order.fulfillment_status }}">{{ order.get_fulfillment_status_display }}</span></td></tr>
+            <tr><td style="padding:4px 12px 4px 0; color:#888;">Payment</td><td><span class="badge badge-{{ order.payment_status }}">{{ order.get_payment_status_display }}</span></td></tr>
+            <tr><td style="padding:4px 12px 4px 0; color:#888;">Method</td><td>{{ order.payment_method|default:"—" }}</td></tr>
+            <tr><td style="padding:4px 12px 4px 0; color:#888;">Created</td><td>{{ order.created|date:"Y-m-d H:i" }}</td></tr>
+            {% if order.paid_at %}<tr><td style="padding:4px 12px 4px 0; color:#888;">Paid at</td><td>{{ order.paid_at|date:"Y-m-d H:i" }}</td></tr>{% endif %}
+        </table>
+    </div>
+</div>
+
+<!-- Fulfillment Status -->
+<form method="post" action="{% url 'staff:update_fulfillment' order.id %}">{% csrf_token %}
+    <select name="fulfillment_status">
+      {% for value, label in fulfillment_choices %}
+        <option value="{{ value }}" {% if order.fulfillment_status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Update Status</button>
+</form>
+  
+<!-- Shipment -->
+{% if not order.paid %}
+    <p>⚠️ Order is not paid — shipment cannot be created.</p>
+{% else %}
+    <form method="post" action="{% url 'staff:update_shipment' order.id %}">
+        {% csrf_token %}
+        <select name="carrier">
+            {% for value, label in shipment_carrier_choices %}
+                <option value="{{ value }}" {% if order.shipment.carrier == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="tracking_code" value="{{ order.shipment.tracking_code|default:'' }}" placeholder="Tracking code">
+        <textarea name="notes">{{ order.shipment.notes|default:'' }}</textarea>
+        <button type="submit">Save Shipment</button>
+    </form>
+{% endif %}
+  
+{# Shipment #}
+{% if order.shipment %}
+<div class="card">
+    <h3 style="margin-bottom:12px; font-size:15px;">Shipment</h3>
+    <p>Carrier: <strong>{{ order.shipment.get_carrier_display }}</strong></p>
+    {% if order.shipment.tracking_code %}<p>Tracking: <strong>{{ order.shipment.tracking_code }}</strong></p>{% endif %}
+    {% if order.shipment.shipped_at %}<p>Shipped: {{ order.shipment.shipped_at|date:"Y-m-d H:i" }}</p>{% endif %}
+</div>
+{% endif %}
+
+{# Items #}
+<div class="card" style="padding:0; overflow:hidden;">
+    <div style="padding:16px 20px; border-bottom:1px solid #eee;"><h3 style="font-size:15px;">Items</h3></div>
+    <table>
+        <thead>
+            <tr><th>Product</th><th>Variant</th><th>Price</th><th>Qty</th><th>Subtotal</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+        {% for item in order.items.all %}
+        <tr>
+            <td>{{ item.product_name }}</td>
+            <td>
+                {% if item.variant %}
+                    {% if item.variant.size %}Size: {{ item.variant.size }}{% endif %}
+                    {% if item.variant.color %}Color: {{ item.variant.color }}{% endif %}
+                {% else %}—{% endif %}
+            </td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.get_cost }}</td>
+            <td><span class="badge badge-{{ item.status }}">{{ item.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# Totals #}
+<div class="card" style="text-align:right;">
+    {% if order.discount %}
+    <p>Discount: <strong>{{ order.discount }}</strong></p>
+    {% endif %}
+    <p style="font-size:18px; font-weight:bold;">Total: {{ order.get_total_cost }}</p>
+</div>
+
+{# Event Log #}
+<div class="card">
+    <h3 style="margin-bottom:12px; font-size:15px;">Event Log</h3>
+    {% for event in order.events.all %}
+    <div style="padding:8px 0; border-bottom:1px solid #f0f0f0; font-size:13px;">
+        <span style="color:#888;">{{ event.created_at|date:"Y-m-d H:i" }}</span>
+        &nbsp;
+        <strong>{{ event.type }}</strong>
+        &nbsp;—&nbsp;
+        {{ event.message }}
+    </div>
+    {% empty %}
+    <p style="color:#888;">No events.</p>
+    {% endfor %}
+</div>
+{% endblock %}

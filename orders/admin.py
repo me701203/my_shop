@@ -83,8 +83,42 @@ class OrderItemInline(admin.TabularInline):
     verbose_name = _("Order item")
     verbose_name_plural = _("Order items")
 
-    fields = ("product", "price", "quantity", "status")
-    readonly_fields = ("product", "price", "quantity")
+    fields = ("product", "variant_display", "price", "quantity", "status")
+    readonly_fields = ("product", "variant_display", "price", "quantity")
+
+    def variant_display(self, obj):
+        if obj.variant_id:  # Check the ID directly instead of the object
+            try:
+                # Access the variant object - it should be loaded via select_related
+                variant = obj.variant
+                variant_parts = []
+
+                if variant.size:
+                    variant_parts.append(f"Size: {variant.size}")
+                if variant.color:
+                    variant_parts.append(f"Color: {variant.color}")
+
+                if variant_parts:
+                    variant_text = ", ".join(variant_parts)
+                else:
+                    variant_text = f"Variant #{variant.id}"
+
+                return format_html(
+                    '<span style="color:#0066cc; font-weight:500;">{}</span>',
+                    variant_text,
+                )
+            except Exception as e:
+                # Fallback if variant can't be accessed
+                return format_html(
+                    '<span style="color:#999;">Variant #{}</span>', obj.variant_id
+                )
+        return format_html('<span style="color:#999;">—</span>')
+
+    variant_display.short_description = _("Variant")
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("variant", "product")
 
 
 class ShipmentInline(admin.StackedInline):

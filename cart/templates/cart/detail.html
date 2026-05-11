@@ -319,7 +319,7 @@ document.addEventListener("DOMContentLoaded", function () {
         method: "POST",
         headers: {
           "X-Requested-With": "XMLHttpRequest",
-          "X-CSRFToken": csrftoken,
+          'X-CSRFToken': getCookie('csrftoken'),
         },
         body: formData,
       })
@@ -375,7 +375,7 @@ document.addEventListener("DOMContentLoaded", function () {
         method: "POST",
         headers: {
           "X-Requested-With": "XMLHttpRequest",
-          "X-CSRFToken": csrftoken,
+          'X-CSRFToken': getCookie('csrftoken'),
         },
         body: formData,
       })
