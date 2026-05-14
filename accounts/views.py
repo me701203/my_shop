@@ -10,6 +10,11 @@ from django.contrib.auth.views import (
     PasswordResetView,
     PasswordResetConfirmView,
 )
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+import logging
+
+
 from .forms import (
     UserRegistrationForm,
     UserLoginForm,
@@ -19,7 +24,10 @@ from .forms import (
 
 from .models import Address
 
+logger = logging.getLogger(__name__)
 
+
+@method_decorator(ratelimit(key="ip", rate="5/h", method="POST"), name="dispatch")
 class UserRegistrationView(CreateView):
     """View for user registration"""
 
@@ -29,10 +37,16 @@ class UserRegistrationView(CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        user = form.instance  # Get the created user
+        logger.info(
+            f"New user registered: user_id={user.id}, username={user.username}, "
+            f"email={user.email}, ip={self.request.META.get('REMOTE_ADDR')}"
+        )
         messages.success(self.request, "Registration successful. Please log in.")
         return response
 
 
+@method_decorator(ratelimit(key="ip", rate="5/h", method="POST"), name="dispatch")
 class UserLoginView(LoginView):
     """View for user login"""
 
@@ -47,6 +61,15 @@ class UserLoginView(LoginView):
         messages.success(self.request, f"Welcome, {form.get_user().username}!")
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        username = form.data.get("username", "unknown")
+        logger.warning(
+            f"Failed login attempt: username={username}, "
+            f"ip={self.request.META.get('REMOTE_ADDR')}, "
+            f"user_agent={self.request.META.get('HTTP_USER_AGENT', '')[:200]}"
+        )
+        return super().form_invalid(form)
+
 
 class UserLogoutView(LogoutView):
     """View for user logout"""
@@ -58,6 +81,7 @@ class UserLogoutView(LogoutView):
         return super().dispatch(request, *args, **kwargs)
 
 
+@method_decorator(ratelimit(key="ip", rate="5/h", method="POST"), name="dispatch")
 class CustomPasswordResetView(PasswordResetView):
     """View for password reset request"""
 
@@ -142,6 +166,10 @@ def address_edit_view(request, pk):
         form = AddressForm(request.POST, instance=address)
         if form.is_valid():
             updated_address = form.save()
+            logger.info(
+                f"Address modified: user_id={request.user.id}, "
+                f"address_id={address.id}, ip={request.META.get('REMOTE_ADDR')}"
+            )
             messages.success(
                 request,
                 f"Address '{updated_address.label}' updated successfully."
@@ -172,6 +200,10 @@ def address_delete_view(request, pk):
 
     if request.method == "POST":
         address.delete()
+        logger.info(
+            f"Address deleted: user_id={request.user.id}, "
+            f"address_id={pk}, ip={request.META.get('REMOTE_ADDR')}"
+        )
         messages.success(request, "Address deleted successfully.")
         return redirect("accounts:address_list")
 

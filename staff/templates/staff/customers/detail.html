@@ -1,0 +1,139 @@
+<!-- staff/templates/staff/customers/detail.html -->
+{% extends "staff/base.html" %}
+{% block title %}Customer: {{ customer.email }}{% endblock %}
+{% block content %}
+<div style="margin-bottom:20px;">
+    <a href="{% url 'staff:customer_list' %}" style="color:#666; font-size:14px;">← Back to Customers</a>
+</div>
+
+<h2 style="margin-bottom:20px;">Customer Details</h2>
+
+<div class="stat-grid" style="margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="number">{{ customer.order_count }}</div>
+        <div class="label">Total Orders</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#10b981;">
+            {% if customer.total_spent %}
+                ${{ customer.total_spent|floatformat:2 }}
+            {% else %}
+                $0.00
+            {% endif %}
+        </div>
+        <div class="label">Total Spent</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#3b82f6;">{{ successful_orders_count }}</div>
+        <div class="label">Successful Orders</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#ef4444;">{{ cancelled_orders_count }}</div>
+        <div class="label">Cancelled Orders</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom:16px; font-size:16px;">Customer Information</h3>
+    <table style="width:auto;">
+        <tr>
+            <th style="width:150px;">Name</th>
+            <td>{{ customer.get_full_name|default:"—" }}</td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td>{{ customer.email }}</td>
+        </tr>
+        <tr>
+            <th>Joined</th>
+            <td>{{ customer.date_joined|date:"Y-m-d H:i" }}</td>
+        </tr>
+        <tr>
+            <th>Last Login</th>
+            <td>
+                {% if customer.last_login %}
+                    {{ customer.last_login|date:"Y-m-d H:i" }}
+                {% else %}
+                    Never
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>
+                {% if customer.is_active %}
+                    <span class="badge badge-success">Active</span>
+                {% else %}
+                    <span class="badge badge-cancelled">Inactive</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+</div>
+
+{% if recent_wishlist %}
+<div class="card">
+    <h3 style="margin-bottom:16px; font-size:16px;">Recent Wishlist Items</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Added</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in recent_wishlist %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.added_at|date:"Y-m-d" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3 style="margin-bottom:16px; font-size:16px;">Order History</h3>
+    {% if orders %}
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Fulfillment</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>#{{ order.id }}</strong></td>
+                <td>{{ order.created|date:"Y-m-d H:i" }}</td>
+                <td>{{ order.items.count }}</td>
+                <td>${{ order.get_total_cost|floatformat:2 }}</td>
+                <td>
+                    <span class="badge badge-{{ order.payment_status }}">
+                        {{ order.get_payment_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge badge-{{ order.fulfillment_status }}">
+                        {{ order.get_fulfillment_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'staff:order_detail' order.id %}" class="btn btn-sm btn-primary">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#999; text-align:center; padding:40px;">No orders yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

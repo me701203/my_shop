@@ -1,11 +1,15 @@
 {% extends "staff/base.html" %}
 {% block title %}Order #{{ order.id }}{% endblock %}
 {% block content %}
-<div style="margin-bottom:16px;">
-    <a href="{% url 'staff:order_list' %}">&larr; Back to Orders</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Order #{{ order.id }}</h2>
+    <div>
+        <a href="{% url 'staff:order_invoice' order.id %}" class="btn btn-primary" target="_blank">
+            <i class="bi bi-file-pdf"></i> Download Invoice
+        </a>
+        <a href="{% url 'staff:order_list' %}" class="btn btn-secondary">Back to Orders</a>
+    </div>
 </div>
-
-<h2 style="margin-bottom:20px;">Order #{{ order.id }}</h2>
 
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
 
@@ -42,7 +46,7 @@
 </form>
   
 <!-- Shipment -->
-{% if not order.paid %}
+{% if order.payment_status != 'success' %}
     <p>⚠️ Order is not paid — shipment cannot be created.</p>
 {% else %}
     <form method="post" action="{% url 'staff:update_shipment' order.id %}">

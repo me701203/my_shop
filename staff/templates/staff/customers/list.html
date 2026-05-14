@@ -1,0 +1,108 @@
+<!-- staff/templates/staff/customers/list.html -->
+{% extends "staff/base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2>Customers</h2>
+</div>
+
+<div class="card">
+    <form method="get" class="filters">
+        <div>
+            <input type="text" name="search" placeholder="Search by name or email..." value="{{ search }}" style="width:300px;">
+        </div>
+        <div>
+            <select name="sort">
+                <option value="-date_joined" {% if sort == "-date_joined" %}selected{% endif %}>Newest First</option>
+                <option value="date_joined" {% if sort == "date_joined" %}selected{% endif %}>Oldest First</option>
+                <option value="-total_spent" {% if sort == "-total_spent" %}selected{% endif %}>Highest Spending</option>
+                <option value="total_spent" {% if sort == "total_spent" %}selected{% endif %}>Lowest Spending</option>
+                <option value="-order_count" {% if sort == "-order_count" %}selected{% endif %}>Most Orders</option>
+                <option value="order_count" {% if sort == "order_count" %}selected{% endif %}>Fewest Orders</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        {% if search or sort != "-date_joined" %}
+            <a href="{% url 'staff:customer_list' %}" class="btn btn-sm" style="background:#6b7280;color:white;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:14px; color:#666;">
+            Total: {{ page_obj.paginator.count }} customers
+        </div>
+        <a href="{% url 'staff:customer_export_csv' %}?{{ request.GET.urlencode }}" class="btn btn-sm btn-primary">
+            Export CSV
+        </a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Joined</th>
+                <th>Orders</th>
+                <th>Total Spent</th>
+                <th>Last Order</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in page_obj %}
+            <tr>
+                <td>
+                    <strong>{{ customer.get_full_name|default:"—" }}</strong>
+                </td>
+                <td>{{ customer.email }}</td>
+                <td>{{ customer.date_joined|date:"Y-m-d" }}</td>
+                <td>{{ customer.order_count }}</td>
+                <td>
+                    {% if customer.total_spent %}
+                        ${{ customer.total_spent|floatformat:2 }}
+                    {% else %}
+                        $0.00
+                    {% endif %}
+                </td>
+                <td>
+                    {% if customer.last_order_date %}
+                        {{ customer.last_order_date|date:"Y-m-d" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'staff:customer_detail' customer.id %}" class="btn btn-sm btn-primary">View</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align:center; color:#999; padding:40px;">
+                    No customers found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1&{{ request.GET.urlencode }}" class="btn btn-sm">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-sm">Previous</a>
+        {% endif %}
+        
+        <span style="color:#666;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="btn btn-sm">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" class="btn btn-sm">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -28,3 +28,9 @@ class ReviewForm(forms.ModelForm):
         if rating and (rating < 1 or rating > 5):
             raise forms.ValidationError(_("Rating must be between 1 and 5."))
         return rating
+
+    def clean_comment(self):
+        comment = self.cleaned_data.get("comment", "")
+        if len(comment) > 2000:
+            raise forms.ValidationError(_("Review must be less than 2000 characters."))
+        return comment.strip()

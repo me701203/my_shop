@@ -6,6 +6,8 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+
 from .models import Address
 import re
 
@@ -166,16 +168,25 @@ class AddressForm(forms.ModelForm):
         return address
 
     def clean_postal_code(self):
-        """Validate postal code"""
-        postal_code = self.cleaned_data.get("postal_code")
-        if postal_code:
-            postal_code = postal_code.strip().upper()
-            # Basic validation - adjust regex based on your country's postal code format
-            if not re.match(r"^[A-Z0-9\s\-]{3,10}$", postal_code):
-                raise ValidationError(
-                    "Please enter a valid postal code (3-10 characters, letters, numbers, spaces, or hyphens)."
+        postal_code = self.cleaned_data.get("postal_code", "").strip().upper()
+
+        # Remove all spaces and hyphens for validation
+        cleaned = postal_code.replace(" ", "").replace("-", "")
+
+        # Must be 3-10 alphanumeric characters only (no special chars)
+        if not re.match(r"^[A-Z0-9]{3,10}$", cleaned):
+            raise forms.ValidationError(
+                _(
+                    "Postal code must contain only letters and numbers (3-10 characters)."
                 )
-        return postal_code
+            )
+
+        # Optional: Add country-specific validation
+        # Example for US ZIP codes:
+        # if not re.match(r"^\d{5}$", cleaned):
+        #     raise forms.ValidationError(_("Invalid US ZIP code format."))
+
+        return postal_code  # Return original format for display
 
     def clean_city(self):
         """Validate city"""

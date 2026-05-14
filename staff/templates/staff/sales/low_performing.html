@@ -1,0 +1,131 @@
+<!-- staff/templates/staff/sales/low_performing.html -->
+{% extends "staff/base.html" %}
+{% block title %}Low Performing Products{% endblock %}
+{% block content %}
+<div style="margin-bottom:20px;">
+    <a href="{% url 'staff:sales_dashboard' %}" style="color:#666; font-size:14px;">← Back to Sales</a>
+</div>
+
+<h2 style="margin-bottom:20px;">Low Performing Products</h2>
+
+<div class="card">
+    <div class="quick-filters">
+        <a href="?days=7" class="quick-btn {% if days == 7 %}active{% endif %}">Last 7 Days</a>
+        <a href="?days=30" class="quick-btn {% if days == 30 %}active{% endif %}">
+        <a href="?days=90" class="quick-btn {% if days == 90 %}active{% endif %}">Last 90 Days</a>
+        <a href="?days=365" class="quick-btn {% if days == 365 %}active{% endif %}">Last Year</a>
+    </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="number">{{ total_products }}</div>
+        <div class="label">Products Analyzed</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#ef4444;">{{ low_performing_count }}</div>
+        <div class="label">Low Performing</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#f59e0b;">{{ no_sales_count }}</div>
+        <div class="label">No Sales</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#3b82f6;">{{ days }}</div>
+        <div class="label">Days Analyzed</div>
+    </div>
+</div>
+
+<div class="card">
+    <div style="margin-bottom:16px;">
+        <p style="color:#666; font-size:14px;">
+            Products with low sales performance during the selected period.
+        </p>
+    </div>
+
+    {% if products %}
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Units Sold</th>
+                <th>Revenue</th>
+                <th>Current Stock</th>
+                <th>Performance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                                 style="width:50px; height:50px; object-fit:cover; border-radius:6px;">
+                        {% endif %}
+                        <div>
+                            <strong>{{ product.name }}</strong>
+                            <div style="font-size:12px; color:#666;">
+                                SKU: {{ product.id }}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if product.category %}
+                        {{ product.category.name }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    <strong>{{ product.total_sold|default:0 }}</strong>
+                </td>
+                <td>
+                    ${{ product.total_revenue|default:0|floatformat:2 }}
+                </td>
+                <td>
+                    {% if product.stock <= 5 %}
+                        <span style="color:#ef4444; font-weight:600;">
+                            {{ product.stock }}
+                        </span>
+                    {% else %}
+                        {{ product.stock }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if product.total_sold == 0 %}
+                        <span class="badge badge-cancelled">No Sales</span>
+                    {% elif product.total_sold < 5 %}
+                        <span class="badge" style="background:#fef3c7;color:#92400e;">
+                            Low Sales
+                        </span>
+                    {% else %}
+                        <span class="badge" style="background:#dbeafe;color:#1e40af;">
+                            Underperforming
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'shop:product_detail' product.id product.slug %}"
+                       class="btn btn-sm btn-primary" target="_blank">
+                        View Product
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center; padding:60px 20px;">
+        <div style="font-size:48px; margin-bottom:16px;">📈</div>
+        <h3 style="margin-bottom:8px;">Great News!</h3>
+        <p style="color:#666;">
+            No low-performing products found for this period.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -19,7 +19,7 @@ Phase 1: Critical Bugs & Core Logic
 ✅ Wishlist functionality
 ✅ Saved addresses for checkout
 
-🔴 High Priority - Current Sprint (Week 1)
+🔴 High Priority - Current Sprint (Week 1 - Done)
 1. Stock Alert Email System ⏱️ 1-2 days
 Status: Backend exists, needs automation
 
@@ -71,7 +71,7 @@ Invalid coupon codes
 Concurrent stock updates
 Deliverable: Bug list with severity ratings
 
-🟡 Medium Priority - Staff Dashboard (Week 2)
+🟡 Medium Priority - Staff Dashboard (Week 2 - Done)
 4. Sales Dashboard ⏱️ 2 days
 Goal: Real-time business metrics for staff
 
@@ -288,35 +288,125 @@ Customer retention rate > 30%
 Stock alert conversion rate > 15%
 
 
-Core Features:
+📋 Week 3: Production Readiness & Security
+Day 1-2: Security Hardening
+[✅ Done] Run python manage.py check --deploy and fix all warnings
+[✅ Done] Add rate limiting to critical endpoints (login, checkout, API)
+[✅ Done] Implement CSRF protection audit (ensure all forms are protected)
+[❌ Not Done] Add security headers (CSP, HSTS, X-Frame-Options)
+[❌ Not Done] Review and secure file upload handling (product images)
+[⚠️ Partial] Add input validation and sanitization for all user inputs
+[⚠️ Partial] Implement proper password policies (if not using Django defaults)
+[✅ Done] Audit permissions: ensure staff-only views are protected
+[⚠️ Partial] Add SQL injection protection review (use parameterized queries)
+[⚠️ Partial] XSS protection audit (template escaping, user-generated content)
+Day 3: Error Tracking & Monitoring
+[ ] Integrate Sentry for error tracking
+[ ] Configure Sentry environments (dev, staging, production)
+[ ] Set up error alerting rules (email/Slack for critical errors)
+[ ] Add custom error pages (404, 500, 403)
+[ ] Test Sentry integration with intentional errors
+Day 4: Logging & Observability
+[⚠️ Partial] Implement structured logging (JSON format)
+[❌ Not Done] Configure log levels per environment
+[❌ Not Done] Add request/response logging middleware
+[✅ Done] Log critical business events (orders, payments, stock changes)
+[❌ Not Done] Set up log rotation and retention policies
+[❌ Not Done] Add performance logging for slow queries
+Day 5: Environment & Configuration
+[ ] Separate settings files (dev, staging, production)
+[ ] Move all secrets to environment variables
+[ ] Create .env.example template
+[ ] Document all required environment variables
+[ ] Set up database connection pooling
+[ ] Configure static/media file serving for production
+[ ] Set up Redis for caching and sessions
+🧪 Week 4: Testing, Performance & Deployment
+Day 1-2: Automated Testing
+[ ] Expand unit test coverage to 80%+ (models, views, forms)
+[ ] Add integration tests for critical flows:
+[ ] Complete checkout process
+[ ] Stock management (purchase → stock decrease)
+[ ] Variant selection and validation
+[ ] Coupon application
+[ ] Staff activity logging
+[ ] Add API endpoint tests (if you have APIs)
+[ ] Test email sending (stock alerts, order confirmations)
+[ ] Add test for concurrent stock updates (race conditions)
+[ ] Set up CI/CD pipeline (GitHub Actions / GitLab CI)
+Day 3: Performance Optimization
+[ ] Run python manage.py check --deploy performance checks
+[ ] Add database indexes for frequently queried fields
+[ ] Optimize N+1 queries (use select_related, prefetch_related)
+[ ] Implement query result caching (Redis)
+[ ] Add pagination to all list views
+[ ] Optimize image loading (lazy loading, compression)
+[ ] Run load testing with Locust or Apache Bench
+[ ] Profile slow endpoints and optimize
+Day 4: Deployment Preparation
+[ ] Create deployment checklist
+[ ] Set up staging environment (mirror of production)
+[ ] Configure production database (PostgreSQL recommended)
+[ ] Set up static file serving (Whitenoise or CDN)
+[ ] Configure email backend (SendGrid, AWS SES, etc.)
+[ ] Set up backup strategy (database, media files)
+[ ] Create database migration plan
+[ ] Document rollback procedures
+Day 5: Final QA & Launch
+[ ] Run full regression testing on staging
+[ ] Test all payment flows (if integrated)
+[ ] Verify email notifications work
+[ ] Test mobile responsiveness
+[ ] Check browser compatibility
+[ ] Load test staging environment
+[ ] Review and test all staff dashboard features
+[ ] Create admin user accounts for production
+[ ] Deploy to production
+[ ] Monitor errors and performance for 24-48 hours
+📊 Success Metrics
+By end of Week 4, you should have:
 
-Order Management (High Priority)
+✅ Zero critical security warnings
+✅ 80%+ test coverage
+✅ Error tracking active (Sentry)
+✅ All secrets in environment variables
+✅ Staging environment fully functional
+✅ Production deployment successful
+✅ Load testing passed (handle expected traffic)
+✅ Monitoring and alerting configured
+🚀 Optional Enhancements (Post-Launch)
+If you have extra time or want to add polish:
 
-View all orders with filtering (status, date, customer)
-Update order status (processing, shipped, delivered, cancelled)
-View order details and customer info
-Print/export invoices
-Sales Reports & Analytics (High Priority)
+[ ] Add API documentation (if you have APIs)
+[ ] Implement full-text search (PostgreSQL or Elasticsearch)
+[ ] Add analytics dashboard (Google Analytics, Plausible)
+[ ] Set up automated backups
+[ ] Add health check endpoint for monitoring
+[ ] Implement feature flags for gradual rollouts
+[ ] Add A/B testing framework
+[ ] Set up CDN for static assets
 
-Revenue reports (daily, weekly, monthly)
-Best-selling products
-Low-performing products
-Customer analytics
-Customer Management
 
-View customer list
-View customer order history
-Customer activity tracking
-Discount/Coupon Management
+📋 Files I Need to Review
+1. Security Headers (Day 1-2)
+I need to see:
 
-Create and manage discount codes
-Set expiration dates and usage limits
-Track coupon usage
-Staff Activity Logs
+settings.py (or settings/base.py if you have split settings)
+middleware.py (if you have custom middleware)
+Root urls.py (to check if you’re using django-csp or similar)
+2. Sentry Setup (Day 3)
+I need to see:
 
-Audit trail for all staff actions
-View who changed what and when
+settings.py (to add Sentry configuration)
+requirements.txt (to add sentry-sdk dependency)
+.env.example or .env (to see your environment variable structure)
+3. Environment Separation (Day 5)
+I need to see:
 
+Current settings.py (to understand your current structure)
+.env or .env.example (to see what’s already externalized)
+manage.py (to check current settings module reference)
+wsgi.py and asgi.py (if they exist, to update settings path)
 
 
 for celery

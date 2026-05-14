@@ -1,0 +1,117 @@
+<!-- staff/templates/staff/coupons/list.html -->
+{% extends "staff/base.html" %}
+{% block title %}Coupons{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2>Coupons</h2>
+    <a href="{% url 'staff:coupon_create' %}" class="btn btn-primary">+ Create Coupon</a>
+</div>
+
+<div class="card">
+    <form method="get" class="filters">
+        <div>
+            <input type="text" name="search" placeholder="Search by code..." value="{{ search }}" style="width:250px;">
+        </div>
+        <div>
+            <select name="status">
+                <option value="all" {% if status_filter == "all" %}selected{% endif %}>All Status</option>
+                <option value="active" {% if status_filter == "active" %}selected{% endif %}>Active</option>
+                <option value="expired" {% if status_filter == "expired" %}selected{% endif %}>Expired</option>
+                <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        {% if search or status_filter != "all" %}
+            <a href="{% url 'staff:coupon_list' %}" class="btn btn-sm" style="background:#6b7280;color:white;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <div style="margin-bottom:16px; font-size:14px; color:#666;">
+        Total: {{ page_obj.paginator.count }} coupons
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Discount</th>
+                <th>Valid From</th>
+                <th>Valid To</th>
+                <th>Uses</th>
+                <th>Max Uses</th>
+                <th>Min Order</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for coupon in page_obj %}
+            <tr>
+                <td><strong>{{ coupon.code }}</strong></td>
+                <td>{{ coupon.discount }}%</td>
+                <td>
+                    {% if coupon.valid_from %}
+                        {{ coupon.valid_from|date:"Y-m-d" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if coupon.valid_to %}
+                        {{ coupon.valid_to|date:"Y-m-d" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ coupon.usage_count }}</td>
+                <td>{{ coupon.max_uses|default:"∞" }}</td>
+                <td>
+                    {% if coupon.min_order_amount %}
+                        ${{ coupon.min_order_amount }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if coupon.active %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge badge-cancelled">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'staff:coupon_detail' coupon.id %}" class="btn btn-sm btn-primary">View</a>
+                    <a href="{% url 'staff:coupon_edit' coupon.id %}" class="btn btn-sm" style="background:#8b5cf6;color:white;">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" style="text-align:center; color:#999; padding:40px;">
+                    No coupons found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1&{{ request.GET.urlencode }}" class="btn btn-sm">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-sm">Previous</a>
+        {% endif %}
+        
+        <span style="color:#666;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="btn btn-sm">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}" class="btn btn-sm">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

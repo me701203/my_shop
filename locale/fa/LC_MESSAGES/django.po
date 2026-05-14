@@ -3,31 +3,185 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-27 21:07+0330\n"
-"PO-Revision-Date: 2026-04-27 21:04+0000\n"
+"POT-Creation-Date: 2026-05-12 22:26+0330\n"
+"PO-Revision-Date: 2026-05-12 22:30+0330\n"
 "Last-Translator:   <>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Translated-Using: django-rosetta 0.10.3\n"
 
-#: .\cart\templates\cart\detail.html:8 .\cart\templates\cart\detail.html:93
+#: .\accounts\models.py:23
+msgid "e.g., Home, Work, Office"
+msgstr "مثلاً: منزل، محل کار، دفتر"
+
+#: .\accounts\models.py:24
+msgid "Address Label"
+msgstr "برچسب آدرس"
+
+#: .\accounts\models.py:26 .\orders\forms.py:30
+msgid "First name"
+msgstr "نام"
+
+#: .\accounts\models.py:27 .\orders\forms.py:31
+msgid "Last name"
+msgstr "نام خانوادگی"
+
+#: .\accounts\models.py:28 .\accounts\models.py:38 .\orders\admin.py:192
+#: .\orders\forms.py:33
+msgid "Address"
+msgstr "آدرس"
+
+#: .\accounts\models.py:29 .\orders\forms.py:34
+msgid "Postal code"
+msgstr "کد پستی"
+
+#: .\accounts\models.py:30 .\orders\forms.py:35
+msgid "City"
+msgstr "شهر"
+
+#: .\accounts\models.py:32
+msgid "Set as default address"
+msgstr "تنظیم به عنوان آدرس پیش‌فرض"
+
+#: .\accounts\models.py:39
+msgid "Addresses"
+msgstr "آدرس‌ها"
+
+#: .\accounts\templates\accounts\address_confirm_delete.html:4
+#: .\accounts\templates\accounts\address_confirm_delete.html:9
+msgid "Delete Address"
+msgstr "حذف آدرس"
+
+#: .\accounts\templates\accounts\address_confirm_delete.html:19
+msgid ""
+"Are you sure you want to delete this address? This action cannot be undone."
+msgstr "آیا مطمئن هستید که می‌خواهید این آدرس را حذف کنید؟ این عمل قابل بازگشت نیست."
+
+#: .\accounts\templates\accounts\address_confirm_delete.html:25
+msgid "Yes, Delete"
+msgstr "بله، حذف شود"
+
+#: .\accounts\templates\accounts\address_confirm_delete.html:26
+#: .\accounts\templates\accounts\address_form.html:99
+#: .\shop\templates\shop\product\detail.html:728
+#: .\shop\templates\shop\product\list.html:330
+#: .\shop\templates\shop\submit_review.html:14
+msgid "Cancel"
+msgstr "لغو"
+
+#: .\accounts\templates\accounts\address_form.html:96
+msgid "Save Address"
+msgstr "ذخیره آدرس"
+
+#: .\accounts\templates\accounts\addresses.html:4
+#: .\accounts\templates\accounts\profile.html:25
+msgid "My Addresses"
+msgstr "آدرس‌های من"
+
+#: .\accounts\templates\accounts\addresses.html:9
+msgid "My Saved Addresses"
+msgstr "آدرس‌های ذخیره شده من"
+
+#: .\accounts\templates\accounts\addresses.html:11
+msgid "Add New Address"
+msgstr "افزودن آدرس جدید"
+
+#: .\accounts\templates\accounts\addresses.html:22
+msgid "Default"
+msgstr "پیش‌فرض"
+
+#: .\accounts\templates\accounts\addresses.html:32
+msgid "Edit"
+msgstr "ویرایش"
+
+#: .\accounts\templates\accounts\addresses.html:35
+msgid "Delete"
+msgstr "حذف"
+
+#: .\accounts\templates\accounts\addresses.html:43
+msgid "You haven't saved any addresses yet."
+msgstr "شما هنوز هیچ آدرسی ذخیره نکرده‌اید."
+
+#: .\accounts\templates\accounts\addresses.html:45
+msgid "Add Your First Address"
+msgstr "اولین آدرس خود را اضافه کنید"
+
+#: .\accounts\templates\accounts\profile.html:7
+msgid "User Profile"
+msgstr "پروفایل کاربر"
+
+#: .\accounts\templates\accounts\profile.html:8 .\orders\forms.py:32
+msgid "Email"
+msgstr "ایمیل"
+
+#: .\accounts\templates\accounts\profile.html:9
+msgid "Phone"
+msgstr "تلفن"
+
+#: .\accounts\templates\accounts\profile.html:10
+msgid "Date of Birth"
+msgstr "تاریخ تولد"
+
+#: .\accounts\templates\accounts\profile.html:11
+msgid "Member since"
+msgstr "عضو از"
+
+#: .\accounts\templates\accounts\profile.html:15
+#: .\orders\templates\orders\order\history.html:9
+msgid "My Orders"
+msgstr "سفارش‌های من"
+
+#: .\accounts\templates\accounts\profile.html:16
+msgid "View your order history and track shipments"
+msgstr "مشاهده تاریخچه سفارشات و پیگیری مرسولات"
+
+#: .\accounts\templates\accounts\profile.html:18
+msgid "View Order History"
+msgstr "مشاهده تاریخچه سفارشات"
+
+#: .\accounts\templates\accounts\profile.html:26
+msgid "Manage your saved shipping addresses"
+msgstr "مدیریت آدرس‌های ارسال ذخیره شده"
+
+#: .\accounts\templates\accounts\profile.html:28
+msgid "Manage Addresses"
+msgstr "مدیریت آدرس‌ها"
+
+#: .\cart\forms.py:28
+msgid "Quantity must be positive."
+msgstr "تعداد باید مثبت باشد."
+
+#: .\cart\forms.py:48
+msgid "Invalid variant selected."
+msgstr "تنوع انتخاب‌شده نامعتبر است."
+
+#: .\cart\forms.py:67
+#, python-format
+msgid "Not enough stock. Available: %(stock)s, requested: %(requested)s"
+msgstr "موجودی کافی نیست. موجود: %(stock)s، درخواستی: %(requested)s"
+
+#: .\cart\forms.py:75
+#, python-format
+msgid "Not enough stock. Available: %(stock)s"
+msgstr "موجودی کافی نیست. موجود: %(stock)s"
+
+#: .\cart\templates\cart\detail.html:8 .\cart\templates\cart\detail.html:116
 msgid "Your shopping cart"
 msgstr "سبد خرید شما"
 
-#: .\cart\templates\cart\detail.html:76
+#: .\cart\templates\cart\detail.html:99
 msgid "Some quantities were adjusted due to stock changes:"
 msgstr "به دلیل تغییر موجودی، تعداد برخی از کالاها اصلاح شد:"
 
-#: .\cart\templates\cart\detail.html:84
+#: .\cart\templates\cart\detail.html:107
 #, python-format
 msgid ""
 "\n"
@@ -37,114 +191,127 @@ msgstr ""
 "\n"
 "از %(old)s به %(new)s تغییر داده شد."
 
-#: .\cart\templates\cart\detail.html:97 .\shop\admin.py:84
+#: .\cart\templates\cart\detail.html:120 .\shop\admin.py:84
 msgid "Image"
 msgstr "تصویر"
 
-#: .\cart\templates\cart\detail.html:98
+#: .\cart\templates\cart\detail.html:121
+#: .\orders\templates\orders\order\detail.html:128
 msgid "Product"
 msgstr "محصول"
 
-#: .\cart\templates\cart\detail.html:99
+#: .\cart\templates\cart\detail.html:122
+#: .\orders\templates\orders\order\detail.html:131
 msgid "Quantity"
 msgstr "تعداد"
 
-#: .\cart\templates\cart\detail.html:100 .\cart\templates\cart\detail.html:186
+#: .\cart\templates\cart\detail.html:123 .\cart\templates\cart\detail.html:209
+#: .\shop\templates\shop\stock_alerts.html:85
+#: .\shop\templates\shop\stock_alerts.html:187
+#: .\shop\templates\shop\stock_alerts.html:194
 msgid "Remove"
 msgstr "حذف"
 
-#: .\cart\templates\cart\detail.html:101
+#: .\cart\templates\cart\detail.html:124
 msgid "Unit price"
 msgstr "قیمت واحد"
 
-#: .\cart\templates\cart\detail.html:102
-#: .\shop\templates\shop\product\detail.html:50
+#: .\cart\templates\cart\detail.html:125
+#: .\orders\templates\orders\order\detail.html:130
+#: .\shop\templates\shop\product\detail.html:484
 msgid "Price"
 msgstr "قیمت"
 
-#: .\cart\templates\cart\detail.html:128
+#: .\cart\templates\cart\detail.html:151
 msgid "Size"
 msgstr "سایز"
 
-#: .\cart\templates\cart\detail.html:131
+#: .\cart\templates\cart\detail.html:154
 msgid "Color"
 msgstr "رنگ"
 
-#: .\cart\templates\cart\detail.html:140 .\cart\templates\cart\detail.html:151
+#: .\cart\templates\cart\detail.html:163 .\cart\templates\cart\detail.html:174
+#: .\shop\templates\shop\product\detail.html:524
+#: .\shop\templates\shop\product\detail.html:1022
+#: .\shop\templates\shop\stock_alerts.html:68
+#: .\shop\templates\shop\wishlist.html:330
 msgid "Out of stock"
 msgstr "ناموجود"
 
-#: .\cart\templates\cart\detail.html:142 .\cart\templates\cart\detail.html:153
+#: .\cart\templates\cart\detail.html:165 .\cart\templates\cart\detail.html:176
 #, python-format
 msgid "only %(n)s left"
 msgstr "فقط %(n)s عدد باقی مانده"
 
-#: .\cart\templates\cart\detail.html:144 .\cart\templates\cart\detail.html:155
+#: .\cart\templates\cart\detail.html:167 .\cart\templates\cart\detail.html:178
 msgid "0 left"
 msgstr "موجودی صفر"
 
-#: .\cart\templates\cart\detail.html:174
+#: .\cart\templates\cart\detail.html:197
 msgid "Update"
 msgstr "به‌روزرسانی"
 
-#: .\cart\templates\cart\detail.html:197
+#: .\cart\templates\cart\detail.html:220
+#: .\orders\templates\orders\order\detail.html:133
+#: .\orders\templates\orders\order\history.html:19
 msgid "Total"
 msgstr "جمع"
 
-#: .\cart\templates\cart\detail.html:207
+#: .\cart\templates\cart\detail.html:230
 msgid "Have a coupon?"
 msgstr "کد تخفیف دارید؟"
 
-#: .\cart\templates\cart\detail.html:208
+#: .\cart\templates\cart\detail.html:231
 msgid "Apply"
 msgstr "اعمال"
 
-#: .\cart\templates\cart\detail.html:212
+#: .\cart\templates\cart\detail.html:235
 msgid "Coupon applied:"
 msgstr "کد تخفیف اعمال شد:"
 
-#: .\cart\templates\cart\detail.html:215
+#: .\cart\templates\cart\detail.html:238
 msgid "Discount:"
 msgstr "تخفیف"
 
-#: .\cart\templates\cart\detail.html:222
+#: .\cart\templates\cart\detail.html:245
 msgid "Total after discount:"
 msgstr "مبلغ پس از تخفیف"
 
-#: .\cart\templates\cart\detail.html:232
-msgid "Continue shopping"
-msgstr "ادامه خرید"
-
-#: .\cart\templates\cart\detail.html:237
+#: .\cart\templates\cart\detail.html:255
 msgid "Some items were adjusted or are out of stock. Please review your cart."
 msgstr ""
 "برخی از کالاهای سبد خرید شما اصلاح شده یا موجود نیستند. لطفاً سبد خرید را "
 "بررسی کنید."
 
-#: .\cart\templates\cart\detail.html:240 .\cart\templates\cart\detail.html:244
+#: .\cart\templates\cart\detail.html:261
+msgid "Continue shopping"
+msgstr "ادامه خرید"
+
+#: .\cart\templates\cart\detail.html:266 .\cart\templates\cart\detail.html:270
 #: .\orders\templates\orders\order\create.html:7
 #: .\orders\templates\orders\order\create.html:11
 msgid "Checkout"
 msgstr "ثبت سفارش"
 
-#: .\cart\views.py:37
-msgid "Invalid variant selected."
-msgstr "تنوع انتخاب‌شده نامعتبر است."
+#: .\cart\views.py:29
+msgid "Please select a variant for this product."
+msgstr "لطفاً یک تنوع برای این محصول انتخاب کنید."
 
-#: .\cart\views.py:43
-msgid "Not enough stock for this variant."
-msgstr "موجودی این تنوع کافی نیست."
+#: .\cart\views.py:77 .\cart\views.py:87
+msgid "Product added to cart successfully."
+msgstr "محصول با موفقیت به سبد خرید اضافه شد."
 
-#: .\cart\views.py:47
-msgid "Not enough stock available for this variant."
-msgstr "موجودی کافی برای این تنوع وجود ندارد."
+#: .\cart\views.py:92
+msgid "Invalid form data."
+msgstr "داده‌های فرم نامعتبر است."
 
-#: .\cart\views.py:59
-msgid "Not enough stock available."
-msgstr "موجودی کافی وجود ندارد."
+#: .\cart\views.py:137
+msgid "Item removed from cart."
+msgstr "کالا از سبد خرید حذف شد."
 
-#: .\coupon\admin.py:18 .\coupon\models.py:86
+#: .\coupon\admin.py:41 .\coupon\models.py:86
 #: .\orders\templates\orders\order\create.html:30
+#: .\orders\templates\orders\order\detail.html:171
 #: .\payment\templates\payment\payment_status.html:46
 #: .\payment\templates\payment\payment_status.html:77
 #: .\payment\templates\payment\payment_status.html:98
@@ -211,15 +378,17 @@ msgstr "در صورت خالی بودن، کد تخفیف برای همه کار
 msgid "active"
 msgstr "فعال"
 
-#: .\coupon\models.py:66 .\orders\models.py:25 .\shop\models.py:74
+#: .\coupon\models.py:66 .\orders\models.py:69 .\shop\models.py:142
+#: .\shop\models.py:562
 msgid "created"
 msgstr "ایجاد شده"
 
-#: .\coupon\models.py:67 .\orders\models.py:26 .\shop\models.py:75
+#: .\coupon\models.py:67 .\orders\models.py:70 .\shop\models.py:143
+#: .\shop\models.py:563
 msgid "updated"
 msgstr "به‌روزرسانی شده"
 
-#: .\coupon\models.py:75 .\orders\models.py:79
+#: .\coupon\models.py:75 .\orders\models.py:149
 msgid "coupon"
 msgstr "کد تخفیف"
 
@@ -264,187 +433,309 @@ msgstr "شما مجاز به استفاده از این کد تخفیف نیست
 msgid "Your order total must be at least %(amount)s to use this coupon."
 msgstr "برای استفاده از این کد تخفیف، مبلغ سفارش باید حداقل %(amount)s باشد."
 
-#: .\coupon\views.py:78
+#: .\coupon\views.py:75
 msgid "Coupon applied successfully."
 msgstr "کد تخفیف با موفقیت اعمال شد."
 
-#: .\orders\admin.py:23
+#: .\orders\admin.py:26
 #, python-format
 msgid "Invoices successfully sent for %(count)s orders."
 msgstr "فاکتور %(count)s سفارش با موفقیت ارسال شد."
 
-#: .\orders\admin.py:28
+#: .\orders\admin.py:31
 msgid "Send invoice to selected orders"
 msgstr "ارسال فاکتور برای سفارش‌های انتخاب‌شده"
 
-#: .\orders\admin.py:60
+#: .\orders\admin.py:63
 msgid "Export to CSV"
 msgstr "خروجی CSV"
 
-#: .\orders\admin.py:70
+#: .\orders\admin.py:69
+msgid "Cancel selected orders"
+msgstr "لغو سفارش‌های انتخاب‌شده"
+
+#: .\orders\admin.py:83
 msgid "Order item"
 msgstr "آیتم سفارش"
 
-#: .\orders\admin.py:71
+#: .\orders\admin.py:84
 msgid "Order items"
 msgstr "آیتم‌های سفارش"
 
-#: .\orders\admin.py:110
+#: .\orders\admin.py:117 .\orders\templates\orders\order\detail.html:129
+msgid "Variant"
+msgstr "تنوع"
+
+#: .\orders\admin.py:188 .\orders\templates\orders\order\detail.html:101
 msgid "Customer Information"
 msgstr "اطلاعات مشتری"
 
-#: .\orders\admin.py:114 .\orders\forms.py:21
-msgid "Address"
-msgstr "آدرس"
+#: .\orders\admin.py:196
+msgid "Reservation Status"
+msgstr "وضعیت رزرو"
 
-#: .\orders\admin.py:118
+#: .\orders\admin.py:205
 msgid "Payment Information"
 msgstr "اطلاعات پرداخت"
 
-#: .\orders\admin.py:130
+#: .\orders\admin.py:217
 msgid "Coupon & Pricing"
 msgstr "کد تخفیف و قیمت‌گذاری"
 
-#: .\orders\admin.py:136
+#: .\orders\admin.py:223 .\shop\admin.py:105
 msgid "Timestamps"
 msgstr "زمان‌ها"
 
-#: .\orders\admin.py:146
+#: .\orders\admin.py:229 .\orders\templates\orders\order\history.html:21
+msgid "Fulfillment"
+msgstr "تکمیل سفارش"
+
+#: .\orders\admin.py:239
 msgid "Total (after discount)"
 msgstr "مبلغ (پس از تخفیف)"
 
-#: .\orders\admin.py:169
+#: .\orders\admin.py:264 .\orders\templates\orders\order\history.html:20
 msgid "Payment"
 msgstr "پرداخت"
 
-#: .\orders\admin.py:193
+#: .\orders\admin.py:288
 msgid "Download invoice"
 msgstr "دانلود فاکتور"
 
-#: .\orders\admin.py:196
+#: .\orders\admin.py:291
 msgid "PDF"
 msgstr "PDF"
 
-#: .\orders\admin.py:201
+#: .\orders\admin.py:296
 msgid "Created (Jalali)"
 msgstr "ایجاد شده (جلالی)"
 
-#: .\orders\forms.py:18
-msgid "First name"
-msgstr "نام"
+#: .\orders\admin.py:308
+msgid "Tracking"
+msgstr "پیگیری"
 
-#: .\orders\forms.py:19
-msgid "Last name"
-msgstr "نام خانوادگی"
+#: .\orders\admin.py:326
+msgid "Cancel selected items"
+msgstr "لغو آیتم‌های انتخاب‌شده"
 
-#: .\orders\forms.py:20
-msgid "Email"
-msgstr "ایمیل"
+#: .\orders\forms.py:10
+msgid "Select saved address"
+msgstr "انتخاب آدرس ذخیره شده"
 
-#: .\orders\forms.py:22
-msgid "Postal code"
-msgstr "کد پستی"
+#: .\orders\forms.py:16
+msgid "Save this address for future orders"
+msgstr "ذخیره این آدرس برای سفارشات آینده"
 
-#: .\orders\forms.py:23
-msgid "City"
-msgstr "شهر"
+#: .\orders\forms.py:46
+msgid "--- Select an address ---"
+msgstr "--- یک آدرس انتخاب کنید ---"
 
-#: .\orders\models.py:12
+#: .\orders\models.py:15 .\orders\models.py:47
+#: .\orders\templates\orders\order\detail.html:79
+#: .\orders\templates\orders\order\history.html:37
+#: .\orders\templates\orders\order\history.html:59
 msgid "Pending"
 msgstr "در انتظار"
 
-#: .\orders\models.py:13
-msgid "Success"
-msgstr "موفق"
+#: .\orders\models.py:16 .\orders\templates\orders\order\history.html:57
+msgid "Confirmed"
+msgstr "تایید شده"
 
-#: .\orders\models.py:14
-msgid "Failed"
-msgstr "ناموفق"
+#: .\orders\models.py:17 .\orders\templates\orders\order\history.html:55
+msgid "Packaging"
+msgstr "در حال بسته‌بندی"
 
-#: .\orders\models.py:15
+#: .\orders\models.py:18 .\orders\templates\orders\order\detail.html:50
+#: .\orders\templates\orders\order\history.html:53
+msgid "Shipped"
+msgstr "ارسال شده"
+
+#: .\orders\models.py:19 .\orders\templates\orders\order\detail.html:65
+#: .\orders\templates\orders\order\history.html:51
+msgid "Delivered"
+msgstr "تحویل داده شده"
+
+#: .\orders\models.py:20 .\orders\models.py:50 .\orders\models.py:187
+#: .\orders\templates\orders\order\detail.html:154
+#: .\orders\templates\orders\order\history.html:41
+#: .\orders\templates\orders\order\history.html:61
 msgid "Cancelled"
 msgstr "لغو شده"
 
-#: .\orders\models.py:17
+#: .\orders\models.py:29
+msgid "Reserved"
+msgstr "رزرو شده"
+
+#: .\orders\models.py:30 .\orders\templates\orders\order\detail.html:77
+#: .\orders\templates\orders\order\history.html:35
+msgid "Paid"
+msgstr "پرداخت شده"
+
+#: .\orders\models.py:31 .\orders\models.py:49
+#: .\orders\templates\orders\order\detail.html:81
+#: .\orders\templates\orders\order\history.html:39
+msgid "Failed"
+msgstr "ناموفق"
+
+#: .\orders\models.py:32
+msgid "Expired"
+msgstr "منقضی شده"
+
+#: .\orders\models.py:48
+msgid "Success"
+msgstr "موفق"
+
+#: .\orders\models.py:51 .\orders\templates\orders\order\history.html:43
+msgid "Partially Refunded"
+msgstr "بازپرداخت جزئی"
+
+#: .\orders\models.py:52 .\orders\templates\orders\order\detail.html:156
+#: .\orders\templates\orders\order\history.html:45
+msgid "Refunded"
+msgstr "بازپرداخت شده"
+
+#: .\orders\models.py:54
 msgid "first name"
 msgstr "نام"
 
-#: .\orders\models.py:18
+#: .\orders\models.py:55
 msgid "last name"
 msgstr "نام خانوادگی"
 
-#: .\orders\models.py:19
+#: .\orders\models.py:56
 msgid "email"
 msgstr "ایمیل"
 
-#: .\orders\models.py:21
+#: .\orders\models.py:65
 msgid "address"
 msgstr "آدرس"
 
-#: .\orders\models.py:22
+#: .\orders\models.py:66
 msgid "postal code"
 msgstr "کد پستی"
 
-#: .\orders\models.py:23
+#: .\orders\models.py:67
 msgid "city"
 msgstr "شهر"
 
-#: .\orders\models.py:28
+#: .\orders\models.py:72
 msgid "paid"
 msgstr "پرداخت شده"
 
-#: .\orders\models.py:29
+#: .\orders\models.py:73
 msgid "paid at"
 msgstr "زمان پرداخت"
 
-#: .\orders\models.py:32
+#: .\orders\models.py:76
 msgid "payment method"
 msgstr "روش پرداخت"
 
-#: .\orders\models.py:36
+#: .\orders\models.py:80
 msgid "payment status"
 msgstr "وضعیت پرداخت"
 
-#: .\orders\models.py:43
+#: .\orders\models.py:87
 msgid "payment authority"
 msgstr "کد پیگیری پرداخت"
 
-#: .\orders\models.py:46
+#: .\orders\models.py:90
 msgid "payment reference ID"
 msgstr "شناسه مرجع پرداخت"
 
-#: .\orders\models.py:51 .\orders\models.py:98
+#: .\orders\models.py:94
+msgid "Prevents multiple simultaneous payment verifications"
+msgstr "جلوگیری از تایید همزمان چندگانه پرداخت"
+
+#: .\orders\models.py:99 .\orders\models.py:191 .\orders\models.py:310
 msgid "order"
 msgstr "سفارش"
 
-#: .\orders\models.py:52
+#: .\orders\models.py:100
 msgid "orders"
 msgstr "سفارش‌ها"
 
-#: .\orders\models.py:58
+#: .\orders\models.py:106
 #, python-format
 msgid "Order %(id)s"
 msgstr "سفارش %(id)s"
 
-#: .\orders\models.py:74
+#: .\orders\models.py:144
 msgid "Logs"
 msgstr "گزارش‌ها"
 
-#: .\orders\models.py:87
+#: .\orders\models.py:157
 msgid "discount"
 msgstr "تخفیف"
 
-#: .\orders\models.py:104 .\shop\models.py:97 .\shop\models.py:190
+#: .\orders\models.py:186 .\orders\templates\orders\order\detail.html:152
+msgid "Active"
+msgstr "فعال"
+
+#: .\orders\models.py:197 .\shop\models.py:192 .\shop\models.py:320
+#: .\shop\models.py:374 .\shop\models.py:548 .\shop\models.py:598
 msgid "product"
 msgstr "محصول"
 
-#: .\orders\models.py:110 .\shop\models.py:68
+#: .\orders\models.py:203
+msgid "product name"
+msgstr "نام محصول"
+
+#: .\orders\models.py:217 .\shop\models.py:136
 msgid "price"
 msgstr "قیمت"
 
-#: .\orders\models.py:115
+#: .\orders\models.py:222
 msgid "quantity"
 msgstr "تعداد"
+
+#: .\orders\models.py:301
+msgid "Post"
+msgstr "پست"
+
+#: .\orders\models.py:302
+msgid "Tipax"
+msgstr "تیپاکس"
+
+#: .\orders\models.py:303
+msgid "Courier"
+msgstr "پیک"
+
+#: .\orders\models.py:304
+msgid "Other"
+msgstr "سایر"
+
+#: .\orders\models.py:314
+msgid "carrier"
+msgstr "شرکت حمل"
+
+#: .\orders\models.py:321
+msgid "tracking code"
+msgstr "کد پیگیری"
+
+#: .\orders\models.py:328
+msgid "shipped at"
+msgstr "زمان ارسال"
+
+#: .\orders\models.py:334
+msgid "delivered at"
+msgstr "زمان تحویل"
+
+#: .\orders\models.py:342
+msgid "notes"
+msgstr "یادداشت‌ها"
+
+#: .\orders\models.py:345
+msgid "shipment"
+msgstr "مرسوله"
+
+#: .\orders\models.py:346
+msgid "shipments"
+msgstr "مرسولات"
+
+#: .\orders\tasks.py:148
+#, python-format
+msgid "Order #%(order_id)s Status Update"
+msgstr "به‌روزرسانی وضعیت سفارش #%(order_id)s"
 
 #: .\orders\templates\orders\order\create.html:13
 msgid "Your order"
@@ -468,265 +759,4 @@ msgstr "کد تخفیف"
 msgid "Final amount"
 msgstr "مبلغ نهایی"
 
-#: .\orders\templates\orders\order\create.html:48
-msgid "Payment Method"
-msgstr "روش پرداخت"
-
-#: .\orders\templates\orders\order\create.html:55
-msgid "Place order"
-msgstr "ثبت سفارش"
-
-#: .\orders\templates\orders\order\created.html:6
-#: .\orders\templates\orders\order\created.html:10
-msgid "Thank you"
-msgstr "سپاسگزاریم"
-
-#: .\orders\templates\orders\order\created.html:11
-msgid "Your order has been successfully completed. Your order number is"
-msgstr "سفارش شما با موفقیت ثبت شد. شماره سفارش شما"
-
-#: .\orders\views.py:56
-msgid ""
-"Some items in your cart are no longer in stock. Please review your cart."
-msgstr ""
-"برخی از کالاهای موجود در سبد خرید شما دیگر موجود نیستند. لطفاً سبد خرید را "
-"بررسی کنید."
-
-#: .\payment\templates\payment\fake_bank.html:7
-#: .\payment\templates\payment\fake_bank.html:12
-msgid "Test Payment Gateway"
-msgstr "درگاه پرداخت آزمایشی"
-
-#: .\payment\templates\payment\fake_bank.html:15
-msgid "Amount"
-msgstr "مبلغ"
-
-#: .\payment\templates\payment\fake_bank.html:21
-msgid "Select payment result"
-msgstr "نتیجه پرداخت را انتخاب کنید"
-
-#: .\payment\templates\payment\fake_bank.html:23
-msgid "Successful payment"
-msgstr "پرداخت موفق"
-
-#: .\payment\templates\payment\fake_bank.html:24
-msgid "Cancel payment"
-msgstr "لغو پرداخت"
-
-#: .\payment\templates\payment\fake_bank.html:29
-msgid "Continue"
-msgstr "ادامه"
-
-#: .\payment\templates\payment\payment_status.html:8
-#: .\payment\templates\payment\payment_status.html:37
-msgid "Payment successful"
-msgstr "پرداخت با موفقیت انجام شد"
-
-#: .\payment\templates\payment\payment_status.html:10
-#: .\payment\templates\payment\payment_status.html:63
-msgid "Payment failed"
-msgstr "پرداخت ناموفق بود"
-
-#: .\payment\templates\payment\payment_status.html:12
-#: .\payment\templates\payment\payment_status.html:90
-msgid "Payment cancelled"
-msgstr "پرداخت لغو شد"
-
-#: .\payment\templates\payment\payment_status.html:14
-msgid "Payment status"
-msgstr "وضعیت پرداخت"
-
-#: .\payment\templates\payment\payment_status.html:42
-msgid "Order ID"
-msgstr "شناسه سفارش"
-
-#: .\payment\templates\payment\payment_status.html:51
-msgid "Tracking code"
-msgstr "کد پیگیری"
-
-#: .\payment\templates\payment\payment_status.html:56
-#: .\payment\templates\payment\payment_status.html:84
-#: .\payment\templates\payment\payment_status.html:105
-msgid "Back to shop"
-msgstr "بازگشت به فروشگاه"
-
-#: .\payment\templates\payment\payment_status.html:66
-msgid "The payment could not be completed."
-msgstr "پرداخت انجام نشد."
-
-#: .\payment\templates\payment\payment_status.html:72
-msgid "No amount was deducted from your account."
-msgstr "هیچ مبلغی از حساب شما کسر نشد."
-
-#: .\payment\templates\payment\payment_status.html:83
-#: .\payment\templates\payment\payment_status.html:104
-msgid "Back to cart"
-msgstr "بازگشت به سبد خرید"
-
-#: .\payment\templates\payment\payment_status.html:93
-msgid "You cancelled the payment process."
-msgstr "شما فرایند پرداخت را لغو کردید."
-
-#: .\payment\templates\payment\payment_status.html:111
-msgid "Unknown status"
-msgstr "وضعیت نامشخص"
-
-#: .\payment\templates\payment\payment_status.html:114
-msgid "Please contact support."
-msgstr "لطفاً با پشتیبانی تماس بگیرید."
-
-#: .\payment\views.py:43
-#, python-format
-msgid "Payment error: %(error)s"
-msgstr "خطای پرداخت: %(error)s"
-
-#: .\payment\views.py:120
-msgid "Invalid payment callback."
-msgstr "بازگشت نامعتبر از درگاه پرداخت."
-
-#: .\shop\admin.py:54
-msgid "Media"
-msgstr "رسانه"
-
-#: .\shop\admin.py:55
-msgid "Description"
-msgstr "توضیحات"
-
-#: .\shop\admin.py:57
-msgid "SEO"
-msgstr "سئو"
-
-#: .\shop\models.py:13 .\shop\models.py:65
-msgid "slug"
-msgstr "اسلاگ"
-
-#: .\shop\models.py:16 .\shop\models.py:59
-msgid "name"
-msgstr "نام"
-
-#: .\shop\models.py:20 .\shop\models.py:55
-msgid "category"
-msgstr "دسته‌بندی"
-
-#: .\shop\models.py:21
-msgid "categories"
-msgstr "دسته‌بندی‌ها"
-
-#: .\shop\models.py:60
-msgid "description"
-msgstr "توضیحات"
-
-#: .\shop\models.py:62
-msgid "image alt text"
-msgstr "متن جایگزین تصویر"
-
-#: .\shop\models.py:66
-msgid "image"
-msgstr "تصویر"
-
-#: .\shop\models.py:73
-msgid "available"
-msgstr "موجود"
-
-#: .\shop\models.py:98
-msgid "products"
-msgstr "محصولات"
-
-#: .\shop\models.py:193
-msgid "size"
-msgstr "اندازه"
-
-#: .\shop\models.py:194
-msgid "color"
-msgstr "رنگ"
-
-#: .\shop\models.py:197
-msgid "price override"
-msgstr "قیمت اختصاصی"
-
-#: .\shop\models.py:202
-msgid "Optional variant-specific price"
-msgstr "قیمت اختصاصی برای این تنوع (اختیاری)"
-
-#: .\shop\models.py:205
-msgid "stock"
-msgstr "موجودی"
-
-#: .\shop\models.py:208
-msgid "product variant"
-msgstr "تنوع محصول"
-
-#: .\shop\models.py:209
-msgid "product variants"
-msgstr "تنوع‌های محصول"
-
-#: .\shop\templates\shop\base.html:40 .\shop\templates\shop\base.html:55
-msgid "My shop"
-msgstr "فروشگاه من"
-
-#: .\shop\templates\shop\base.html:65
-msgid "English"
-msgstr "انگلیسی"
-
-#: .\shop\templates\shop\base.html:66
-msgid "Persian"
-msgstr "فارسی"
-
-#: .\shop\templates\shop\base.html:75
-msgid "Your cart"
-msgstr "سبد خرید شما"
-
-#: .\shop\templates\shop\base.html:81
-msgid "Your cart is empty."
-msgstr "سبد خرید شما خالی است."
-
-#: .\shop\templates\shop\product\detail.html:38
-#: .\shop\templates\shop\product\detail.html:135
-#: .\shop\templates\shop\product\list.html:30
-msgid "No image available"
-msgstr "بدون تصویر"
-
-#: .\shop\templates\shop\product\detail.html:52
-#: .\shop\templates\shop\product\detail.html:54
-msgid "From"
-msgstr "از"
-
-#: .\shop\templates\shop\product\detail.html:76
-msgid "Choose variant"
-msgstr "انتخاب تنوع"
-
-#: .\shop\templates\shop\product\detail.html:80
-msgid "Select an option"
-msgstr "یک گزینه انتخاب کنید"
-
-#: .\shop\templates\shop\product\detail.html:118
-msgid "Add to cart"
-msgstr "افزودن به سبد خرید"
-
-#: .\shop\templates\shop\product\detail.html:125
-msgid "Customers who bought this also bought:"
-msgstr "مشتریانی که این محصول را خریده‌اند، این محصولات را نیز خریده‌اند:"
-
-#: .\shop\templates\shop\product\list.html:7
-#: .\shop\templates\shop\product\list.html:25
-msgid "Products"
-msgstr "محصولات"
-
-#: .\shop\templates\shop\product\list.html:12
-msgid "Categories"
-msgstr "دسته‌بندی‌ها"
-
-#: .\shop\templates\shop\product\list.html:15
-msgid "All"
-msgstr "همه"
-
-#: .\shop\views.py:62
-msgid "This product is out of stock."
-msgstr "این محصول ناموجود است."
-
-#: .\shop\views.py:91
-msgid "invalid mode"
-msgstr "حالت نامعتبر"
-
-#~ msgid "No image"
-#~ msgstr "بدون تصویر"
+#: .\orders\templates\orders\order\create.html:

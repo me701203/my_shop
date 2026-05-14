@@ -3,11 +3,13 @@ from django.utils import timezone
 from django.contrib import messages
 from django.conf import settings
 from django.utils.translation import gettext as _
-
+import logging
 
 from .models import Coupon
 from .forms import CouponApplyForm
 from cart.cart import Cart
+
+logger = logging.getLogger(__name__)
 
 
 def coupon_apply(request):
@@ -24,6 +26,11 @@ def coupon_apply(request):
     try:
         coupon = Coupon.objects.get(code__iexact=code)
     except Coupon.DoesNotExist:
+        logger.info(
+            f"Invalid coupon code attempted: code={code}, "
+            f"user_id={request.user.id if request.user.is_authenticated else 'anonymous'}, "
+            f"ip={request.META.get('REMOTE_ADDR')}"
+        )
         messages.error(request, _("This coupon does not exist."))
         return redirect("cart:cart_detail")
 
@@ -53,6 +60,11 @@ def coupon_apply(request):
             return redirect("cart:cart_detail")
 
         if request.user not in coupon.users.all():
+            logger.warning(
+                f"Unauthorized coupon attempt: user_id={request.user.id}, "
+                f"username={request.user.username}, coupon_code={coupon.code}, "
+                f"ip={request.META.get('REMOTE_ADDR')}"
+            )
             messages.error(request, _("You are not allowed to use this coupon."))
             return redirect("cart:cart_detail")
 

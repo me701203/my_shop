@@ -1,0 +1,166 @@
+<!-- staff/templates/staff/coupons/detail.html -->
+{% extends "staff/base.html" %}
+{% block title %}Coupon: {{ coupon.code }}{% endblock %}
+{% block content %}
+<div style="margin-bottom:20px;">
+    <a href="{% url 'staff:coupon_list' %}" style="color:#666; font-size:14px;">← Back to Coupons</a>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2>Coupon: {{ coupon.code }}</h2>
+    <div>
+        <a href="{% url 'staff:coupon_edit' coupon.id %}" class="btn btn-primary">Edit</a>
+        <form method="post" action="{% url 'staff:coupon_delete' coupon.id %}" style="display:inline;" onsubmit="return confirm('Deactivate this coupon?');">
+            {% csrf_token %}
+            <button type="submit" class="btn" style="background:#ef4444;color:white;">Deactivate</button>
+        </form>
+    </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="number">{{ coupon.discount }}%</div>
+        <div class="label">Discount</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#3b82f6;">{{ coupon.usage_count }}</div>
+        <div class="label">Times Used</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#10b981;">${{ total_discount|floatformat:2 }}</div>
+        <div class="label">Total Discount Given</div>
+    </div>
+    <div class="stat-card">
+        <div class="number" style="color:#f59e0b;">
+            {% if coupon.max_uses %}
+                {{ coupon.max_uses }}
+            {% else %}
+                ∞
+            {% endif %}
+        </div>
+        <div class="label">Max Uses</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom:16px; font-size:16px;">Coupon Details</h3>
+    <table style="width:auto;">
+        <tr>
+            <th style="width:180px;">Code</th>
+            <td><strong>{{ coupon.code }}</strong></td>
+        </tr>
+        <tr>
+            <th>Discount</th>
+            <td>{{ coupon.discount }}%</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>
+                {% if coupon.active %}
+                    <span class="badge badge-success">Active</span>
+                {% else %}
+                    <span class="badge badge-cancelled">Inactive</span>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Valid From</th>
+            <td>
+                {% if coupon.valid_from %}
+                    {{ coupon.valid_from|date:"Y-m-d H:i" }}
+                {% else %}
+                    No start date
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Valid To</th>
+            <td>
+                {% if coupon.valid_to %}
+                    {{ coupon.valid_to|date:"Y-m-d H:i" }}
+                {% else %}
+                    No expiry date
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Min Order Amount</th>
+            <td>
+                {% if coupon.min_order_amount %}
+                    ${{ coupon.min_order_amount }}
+                {% else %}
+                    No minimum
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Max Uses</th>
+            <td>
+                {% if coupon.max_uses %}
+                    {{ coupon.max_uses }}
+                {% else %}
+                    Unlimited
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Current Uses</th>
+            <td>{{ coupon.usage_count }}</td>
+        </tr>
+        <tr>
+            <th>User Restricted</th>
+            <td>
+                {% if coupon.users.exists %}
+                    Yes ({{ coupon.users.count }} users)
+                {% else %}
+                    No (available to all)
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Created</th>
+            <td>{{ coupon.created|date:"Y-m-d H:i" }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom:16px; font-size:16px;">Usage History</h3>
+    {% if orders %}
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Order Total</th>
+                <th>Discount Applied</th>
+                <th>Payment Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>#{{ order.id }}</strong></td>
+                <td>{{ order.user.email|default:"Guest" }}</td>
+                <td>{{ order.created|date:"Y-m-d H:i" }}</td>
+                <td>${{ order.get_total_cost|floatformat:2 }}</td>
+                <td style="color:#10b981; font-weight:600;">-${{ order.discount|floatformat:2 }}</td>
+                <td>
+                    <span class="badge badge-{{ order.payment_status }}">
+                        {{ order.get_payment_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'staff:order_detail' order.id %}" class="btn btn-sm btn-primary">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#999; text-align:center; padding:40px;">This coupon hasn't been used yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

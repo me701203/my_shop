@@ -1,8 +1,13 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import (
+    MinValueValidator,
+    MaxValueValidator,
+    FileExtensionValidator,
+)
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.db.models import (
     F,
     Expression,
@@ -24,6 +29,51 @@ from parler.models import TranslatableModel, TranslatedFields
 from parler.managers import TranslatableManager, TranslatableQuerySet
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
+import ipaddress
+
+
+def anonymize_ip(ip_str):
+    """Anonymize IP by masking last octet (IPv4) or last 80 bits (IPv6)"""
+    if not ip_str:
+        return None
+
+    try:
+        ip = ipaddress.ip_address(ip_str)
+        if ip.version == 4:
+            # Mask last octet: 192.168.1.123 -> 192.168.1.0
+            return str(ipaddress.IPv4Address(int(ip) & 0xFFFFFF00))
+        else:
+            # Mask last 80 bits for IPv6
+            return str(ipaddress.IPv6Address(int(ip) & (0xFFFFFFFFFFFFFFFF << 80)))
+    except ValueError:
+        return None
+
+
+class InsufficientStockError(Exception):
+    """Raised when attempting to reduce stock below zero"""
+
+    pass
+
+
+def validate_image_size(image):
+    """Limit image uploads to 5MB"""
+    max_size = 5 * 1024 * 1024  # 5MB
+    if image.size > max_size:
+        raise ValidationError(f"Image file too large. Maximum size is 5MB.")
+
+
+def validate_image_content(image):
+    """Verify image is actually an image using Pillow"""
+    from PIL import Image
+
+    try:
+        img = Image.open(image)
+        img.verify()
+        # Check for reasonable dimensions
+        if img.width > 4000 or img.height > 4000:
+            raise ValidationError("Image dimensions too large (max 4000x4000)")
+    except Exception:
+        raise ValidationError("Invalid image file")
 
 
 class Category(TranslatableModel):
@@ -108,7 +158,16 @@ class Product(TranslatableModel):
         ),
     )
     slug = models.SlugField(_("slug"), max_length=200, unique=True)
-    image = models.ImageField(_("image"), upload_to="products/%Y/%m/%d", blank=True)
+    image = models.ImageField(
+        _("image"),
+        upload_to="products/%Y/%m/%d",
+        blank=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"]),
+            validate_image_size,
+            validate_image_content,
+        ],
+    )
 
     # Thumbnail specifications
     thumbnail_small = ImageSpecField(
@@ -290,7 +349,9 @@ class Product(TranslatableModel):
 
             # Prevent overselling
             if product.stock < quantity:
-                raise ValueError("Not enough stock available.")
+                raise InsufficientStockError(
+                    f"Not enough stock. Available: {product.stock}, requested: {quantity}"
+                )
 
             product.stock -= quantity
 
@@ -365,6 +426,12 @@ class ProductView(models.Model):
         product_name = self.product.safe_translation_getter("name", any_language=True)
         return f"{user_info} viewed {product_name}"
 
+    def save(self, *args, **kwargs):
+        # Anonymize IP before saving
+        if self.ip_address:
+            self.ip_address = anonymize_ip(self.ip_address)
+        super().save(*args, **kwargs)
+
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(
@@ -381,6 +448,11 @@ class ProductVariant(models.Model):
         _("variant image"),
         upload_to="variants/%Y/%m/%d",
         blank=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"]),
+            validate_image_size,
+            validate_image_content,
+        ],
         help_text=_("Optional variant-specific image"),
     )
 
@@ -455,7 +527,10 @@ class ProductVariant(models.Model):
 
             # Prevent overselling
             if variant.stock < quantity:
-                raise ValueError("Not enough stock available for this variant.")
+                raise InsufficientStockError(
+                    f"Not enough stock for variant '{variant.name}'. "
+                    f"Available: {variant.stock}, requested: {quantity}"
+                )
 
             variant.stock -= quantity
             variant.save(update_fields=["stock"])
@@ -558,7 +633,7 @@ class Review(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         help_text=_("Rating from 1 to 5 stars"),
     )
-    comment = models.TextField(_("comment"), blank=True)
+    comment = models.TextField(_("comment"), blank=True, max_length=2000)
     created = models.DateTimeField(_("created"), auto_now_add=True)
     updated = models.DateTimeField(_("updated"), auto_now=True)
     is_verified_purchase = models.BooleanField(

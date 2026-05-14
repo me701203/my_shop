@@ -3,6 +3,9 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils.translation import gettext as _
+from django_ratelimit.decorators import ratelimit
+from django.db.models import F, Q
+
 from decimal import Decimal
 
 from shop.models import Product, ProductVariant
@@ -10,8 +13,16 @@ from .cart import Cart
 from .forms import CartAddProductForm
 
 
+@ratelimit(key="ip", rate="30/m", method="POST")
 @require_POST
 def cart_add(request, product_id):
+    if getattr(request, "limited", False):
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse(
+                {"ok": False, "error": _("Too many requests")}, status=429
+            )
+        messages.error(request, _("Too many requests. Please slow down."))
+        return redirect("cart:cart_detail")
     cart = Cart(request)
     product = get_object_or_404(Product, id=product_id)
     form = CartAddProductForm(request.POST)
@@ -104,11 +115,32 @@ def cart_add(request, product_id):
         return redirect("shop:product_detail", id=product.id, slug=product.slug)
 
 
+@ratelimit(key="ip", rate="30/m", method="POST")
 @require_POST
 def cart_remove(request, product_id):
+    if getattr(request, "limited", False):
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse(
+                {"ok": False, "error": _("Too many requests")}, status=429
+            )
+        messages.error(request, _("Too many requests. Please slow down."))
+        return redirect("cart:cart_detail")
     cart = Cart(request)
     product = get_object_or_404(Product, id=product_id)
     variant_id = request.POST.get("variant_id")  # may be None
+
+    if variant_id:
+        try:
+            variant_id = int(variant_id)
+            if variant_id <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            if is_ajax:
+                return JsonResponse(
+                    {"ok": False, "error": _("Invalid variant ID")}, status=400
+                )
+            messages.error(request, _("Invalid variant selected"))
+            return redirect("cart:cart_detail")
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 

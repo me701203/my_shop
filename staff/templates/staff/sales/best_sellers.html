@@ -1,0 +1,102 @@
+<!-- staff/templates/staff/sales/best_sellers.html -->
+{% extends "staff/base.html" %}
+{% block title %}Best Sellers Report{% endblock %}
+{% block content %}
+<div style="margin-bottom:20px;">
+    <a href="{% url 'staff:sales_report' %}" style="color:#666; font-size:14px;">← Back to Sales</a>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <h2>Best Sellers Report</h2>
+    
+    <div style="display:flex; gap:8px;">
+        <a href="?days=7" class="btn {% if days == 7 %}btn-primary{% endif %}" style="{% if days != 7 %}background:#6b7280;color:white;{% endif %}">
+            Last 7 Days
+        </a>
+        <a href="?days=30" class="btn {% if days == 30 %}btn-primary{% endif %}" style="{% if days != 30 %}background:#6b7280;color:white;{% endif %}">
+            Last 30 Days
+        </a>
+        <a href="?days=90" class="btn {% if days == 90 %}btn-primary{% endif %}" style="{% if days != 90 %}background:#6b7280;color:white;{% endif %}">
+            Last 90 Days
+        </a>
+    </div>
+</div>
+
+<!-- Best-Selling Products -->
+<div class="card" style="margin-bottom:24px;">
+    <h3 style="margin-bottom:16px;">Top Products (Last {{ days }} Days)</h3>
+    
+    {% if best_products %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th style="text-align:left;">Rank</th>
+                    <th style="text-align:left;">Product</th>
+                    <th style="text-align:right;">Units Sold</th>
+                    <th style="text-align:right;">Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in best_products %}
+                <tr>
+                    <td style="font-weight:600;">#{{ forloop.counter }}</td>
+                    <td>
+                        <a href="{% url 'staff:product_detail' product.id %}" style="color:#2563eb;">
+                            {{ product.name }}
+                        </a>
+                    </td>
+                    <td style="text-align:right;">{{ product.units_sold }}</td>
+                    <td style="text-align:right; font-weight:600;">${{ product.revenue|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:#666; text-align:center; padding:40px 0;">No sales data for this period</p>
+    {% endif %}
+</div>
+
+<!-- Best-Selling Variants -->
+<div class="card">
+    <h3 style="margin-bottom:16px;">Top Variants (Last {{ days }} Days)</h3>
+    
+    {% if best_variants %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th style="text-align:left;">Rank</th>
+                    <th style="text-align:left;">Product</th>
+                    <th style="text-align:left;">Variant</th>
+                    <th style="text-align:right;">Units Sold</th>
+                    <th style="text-align:right;">Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for variant in best_variants %}
+                <tr>
+                    <td style="font-weight:600;">#{{ forloop.counter }}</td>
+                    <td>
+                        <a href="{% url 'staff:product_detail' variant.product.id %}" style="color:#2563eb;">
+                            {{ variant.product.name }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if variant.size %}Size: {{ variant.size }}{% endif %}
+                        {% if variant.size and variant.color %} | {% endif %}
+                        {% if variant.color %}Color: {{ variant.color }}{% endif %}
+                    </td>
+                    <td style="text-align:right;">{{ variant.units_sold }}</td>
+                    <td style="text-align:right; font-weight:600;">${{ variant.revenue|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:#666; text-align:center; padding:40px 0;">No variant sales data for this period</p>
+    {% endif %}
+</div>
+{% endblock %}

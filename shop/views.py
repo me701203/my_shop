@@ -12,6 +12,10 @@ from django.db.models import Q, Min, Max, Avg, Count
 from django.views.decorators.http import require_POST, require_http_methods
 from django.db import IntegrityError
 from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
+from django_ratelimit.exceptions import Ratelimited
+import logging
+
 
 from cart.forms import CartAddProductForm
 from .models import Category, Product, Review, StockAlert
@@ -20,6 +24,8 @@ from .middleware import CacheMonitoringMiddleware
 from .forms import ReviewForm
 from orders.models import OrderItem
 from .tasks import send_stock_alert_email
+
+logger = logging.getLogger(__name__)
 
 
 def get_cache_key_with_version(base_key, version_type):
@@ -89,10 +95,22 @@ def product_list(request, category_slug=None):
     )
 
 
+@ratelimit(key="user_or_ip", rate="10/h", method="POST")
 def product_detail(request, id, slug):
     """Product detail view with caching and reviews"""
     from .models import get_cache_version, ProductView
     from django.db.models import F
+
+    # Check if rate limited
+    if getattr(request, "limited", False):
+        logger.warning(
+            f"Review rate limit exceeded: user_id={request.user.id}, "
+            f"product_id={id}, ip={request.META.get('REMOTE_ADDR')}"
+        )
+        messages.error(
+            request, _("You have submitted too many reviews. Please try again later.")
+        )
+        return redirect("shop:product_detail", id=id, slug=slug)
 
     # Generate cache key with version
     version = get_cache_version("product_detail")
@@ -347,9 +365,20 @@ def wishlist_view(request):
 
 @login_required
 @require_POST
+@ratelimit(key="user", rate="30/m", method="POST")
 def wishlist_add(request, product_id):
     """Add product to wishlist (AJAX endpoint)"""
     from .models import Wishlist
+
+    # Check if rate limited
+    if getattr(request, "limited", False):
+        logger.warning(
+            f"Wishlist operation rate limit: user_id={request.user.id}, "
+            f"product_id={product_id}, operation='add/remove/toggle', "
+            f"ip={request.META.get('REMOTE_ADDR')}"
+        )
+        messages.error(request, _("Operation too fast. Please wait a moment."))
+        return redirect("shop:product_list")
 
     try:
         product = get_object_or_404(Product, id=product_id)
@@ -390,10 +419,21 @@ def wishlist_add(request, product_id):
 
 @login_required
 @require_POST
+@ratelimit(key="user", rate="30/m", method="POST")
 def wishlist_remove(request, product_id):
     """Remove product from wishlist (AJAX endpoint)"""
     from .models import Wishlist
     from django.utils.translation import gettext_lazy as _
+
+    # Check if rate limited
+    if getattr(request, "limited", False):
+        logger.warning(
+            f"Wishlist operation rate limit: user_id={request.user.id}, "
+            f"product_id={product_id}, operation='add/remove/toggle', "
+            f"ip={request.META.get('REMOTE_ADDR')}"
+        )
+        messages.error(request, _("Operation too fast. Please wait a moment."))
+        return redirect("shop:wishlist")
 
     try:
         product = Product.objects.get(id=product_id)
@@ -447,9 +487,20 @@ def wishlist_remove(request, product_id):
 
 @login_required
 @require_POST
+@ratelimit(key="user", rate="30/m", method="POST")
 def wishlist_toggle(request, product_id):
     """Toggle product in wishlist - works with both GET and POST"""
     from .models import Wishlist
+
+    # Check if rate limited
+    if getattr(request, "limited", False):
+        logger.warning(
+            f"Wishlist operation rate limit: user_id={request.user.id}, "
+            f"product_id={product_id}, operation='add/remove/toggle', "
+            f"ip={request.META.get('REMOTE_ADDR')}"
+        )
+        messages.error(request, _("Operation too fast. Please wait a moment."))
+        return redirect("shop:product_list")
 
     try:
         product = Product.objects.get(id=product_id)
@@ -731,10 +782,20 @@ def clear_comparison(request):
 from .models import StockAlert
 
 
+@ratelimit(key="user", rate="10/h", method="POST")
 def subscribe_stock_alert(request, product_id):
     """
     Subscribe to stock alerts for out-of-stock products.
     """
+    # Check if rate limited
+    if getattr(request, "limited", False):
+        logger.warning(
+            f"Stock alert rate limit: user_id={request.user.id}, "
+            f"product_id={product_id}, ip={request.META.get('REMOTE_ADDR')}"
+        )
+        messages.error(request, _("You have sent too many requests."))
+        return redirect("shop:product_list")
+
     if not request.user.is_authenticated:
         return JsonResponse(
             {
@@ -860,3 +921,7 @@ def check_stock_alerts(sender, instance, **kwargs):
 
         for alert in alerts:
             send_stock_alert_email.delay(alert.id)
+
+
+def ratelimited_error(request, exception):
+    return render(request, "429.html", status=429)

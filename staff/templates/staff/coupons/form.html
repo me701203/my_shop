@@ -1,0 +1,132 @@
+<!-- staff/templates/staff/coupons/form.html -->
+{% extends "staff/base.html" %}
+{% block title %}{% if coupon %}Edit Coupon{% else %}Create Coupon{% endif %}{% endblock %}
+{% block content %}
+<div style="margin-bottom:20px;">
+    <a href="{% if coupon %}{% url 'staff:coupon_detail' coupon.id %}{% else %}{% url 'staff:coupon_list' %}{% endif %}" style="color:#666; font-size:14px;">← Back</a>
+</div>
+
+<h2 style="margin-bottom:20px;">{% if coupon %}Edit Coupon{% else %}Create New Coupon{% endif %}</h2>
+
+<div class="card" style="max-width:600px;">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="margin-bottom:16px;">
+            <label style="display:block; margin-bottom:4px; font-weight:600; font-size:14px;">
+                Code <span style="color:#ef4444;">*</span>
+            </label>
+            <input type="text" name="code" value="{{ coupon.code|default:'' }}" 
+                   required maxlength="50" style="width:100%; text-transform:uppercase;"
+                   {% if coupon %}readonly{% endif %}
+                   placeholder="e.g., SUMMER2024">
+            <small style="color:#666; font-size:12px;">Uppercase letters and numbers only</small>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block; margin-bottom:4px; font-weight:600; font-size:14px;">
+                Discount Type <span style="color:#ef4444;">*</span>
+            </label>
+            <select name="discount_type" id="discount_type" required style="width:100%;">
+                <option value="percentage" {% if not coupon or coupon.discount_type == 'percentage' %}selected{% endif %}>
+                    Percentage (%)
+                </option>
+                <option value="fixed" {% if coupon and coupon.discount_type == 'fixed' %}selected{% endif %}>
+                    Fixed Amount ($)
+                </option>
+            </select>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block; margin-bottom:4px; font-weight:600; font-size:14px;">
+                Discount Value <span style="color:#ef4444;">*</span>
+            </label>
+            <input type="number" name="discount_value" id="discount_value"
+                   value="{{ coupon.discount_value|default:'' }}" 
+                   required min="0.01" step="0.01" style="width:100%;"
+                   placeholder="e.g., 10">
+            <small id="discount_hint" style="color:#666; font-size:12px;">
+                Enter percentage (1-100) or fixed amount
+            </small>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:flex; align-items:center; cursor:pointer;">
+                <input type="checkbox" name="active" {% if not coupon or coupon.active %}checked{% endif %} 
+                       style="margin-right:8px;">
+                <span style="font-weight:600; font-size:14px;">Active</span>
+            </label>
+            <small style="color:#666; font-size:12px;">Inactive coupons cannot be used</small>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block; margin-bottom:4px; font-weight:600; font-size:14px;">
+                Valid From
+            </label>
+            <input type="datetime-local" name="valid_from" 
+                   value="{% if coupon.valid_from %}{{ coupon.valid_from|date:'Y-m-d\TH:i' }}{% endif %}" 
+                   style="width:100%;">
+            <small style="color:#666; font-size:12px;">Leave empty for no start date</small>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block; margin-bottom:4px; font-weight:600; font-size:14px;">
+                Valid To
+            </label>
+            <input type="datetime-local" name="valid_to" 
+                   value="{% if coupon.valid_to %}{{ coupon.valid_to|date:'Y-m-d\TH:i' }}{% endif %}" 
+                   style="width:100%;">
+            <small style="color:#666; font-size:12px;">Leave empty for no expiry</small>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block; margin-bottom:4px; font-weight:600; font-size:14px;">
+                Max Uses
+            </label>
+            <input type="number" name="max_uses" value="{{ coupon.max_uses|default:'' }}" 
+                   min="0" style="width:100%;"
+                   placeholder="Leave empty for unlimited">
+            <small style="color:#666; font-size:12px;">Total number of times this coupon can be used</small>
+        </div>
+
+        <div style="margin-bottom:24px;">
+            <label style="display:block; margin-bottom:4px; font-weight:600; font-size:14px;">
+                Minimum Order Amount ($)
+            </label>
+            <input type="number" name="min_order_amount" value="{{ coupon.min_order_amount|default:'' }}" 
+                   min="0" step="0.01" style="width:100%;"
+                   placeholder="Leave empty for no minimum">
+            <small style="color:#666; font-size:12px;">Minimum cart total required to use this coupon</small>
+        </div>
+
+        <div style="display:flex; gap:12px;">
+            <button type="submit" class="btn btn-primary">
+                {% if coupon %}Update Coupon{% else %}Create Coupon{% endif %}
+            </button>
+            <a href="{% if coupon %}{% url 'staff:coupon_detail' coupon.id %}{% else %}{% url 'staff:coupon_list' %}{% endif %}" 
+               class="btn" style="background:#6b7280;color:white;">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const discountType = document.getElementById('discount_type');
+    const discountValue = document.getElementById('discount_value');
+    const discountHint = document.getElementById('discount_hint');
+    
+    function updateHint() {
+        if (discountType.value === 'percentage') {
+            discountHint.textContent = 'Enter percentage (1-100)';
+            discountValue.max = '100';
+        } else {
+            discountHint.textContent = 'Enter fixed dollar amount';
+            discountValue.removeAttribute('max');
+        }
+    }
+    
+    discountType.addEventListener('change', updateHint);
+    updateHint();
+});
+</script>
+{% endblock %}

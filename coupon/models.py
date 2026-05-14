@@ -15,8 +15,8 @@ class Coupon(models.Model):
 
     code = models.CharField(_("code"), max_length=50, unique=True)
 
-    valid_from = models.DateTimeField(_("valid from"))
-    valid_to = models.DateTimeField(_("valid to"))
+    valid_from = models.DateTimeField(_("valid from"), null=True)
+    valid_to = models.DateTimeField(_("valid to"), null=True)
 
     discount_type = models.CharField(
         _("discount type"), max_length=20, choices=DISCOUNT_TYPES

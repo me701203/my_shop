@@ -1,0 +1,14 @@
+{% extends "shop/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Too Many Requests" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>{% trans "Too Many Requests" %}</h2>
+    <p>{% trans "You have sent too many requests. Please wait a moment and try again." %}</p>
+    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">
+        {% trans "Back to Shop" %}
+    </a>
+</div>
+{% endblock %}

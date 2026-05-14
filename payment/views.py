@@ -10,6 +10,8 @@ from django.contrib import messages
 from django_ratelimit.decorators import ratelimit
 from django.db.models import F
 
+import logging
+
 from .gateways.fake import FakeGateway
 from .gateways.zarinpal import ZarinpalGateway
 from .gateways.zibal import ZibalGateway
@@ -22,6 +24,8 @@ from payment.services.refund import complete_refund, RefundError
 from shop.models import Product, ProductVariant
 from orders.services.events import log_order_event
 from orders.models import OrderEvent
+
+logger = logging.getLogger(__name__)
 
 GATEWAYS = {
     "fake": FakeGateway,
@@ -85,7 +89,12 @@ def payment_process(request, order_id):
     )
 
     if not success:
-        return HttpResponse(_("Payment error: %(error)s") % {"error": error})
+        # Log detailed error
+        logger.error(f"Payment request failed for order {order.id}: {error}")
+
+        # return HttpResponse(_("Payment error: %(error)s") % {"error": error})
+        # Show generic message to user
+        return HttpResponse(_("Payment could not be initiated. Please try again."))
 
     order.payment_method = request.session.get("gateway", "fake")
     order.payment_authority = authority
@@ -101,6 +110,21 @@ def payment_process(request, order_id):
             "authority": authority,
         },
     )
+
+    from urllib.parse import urlparse
+
+    # After getting redirect_url from gateway
+    parsed = urlparse(redirect_url)
+
+    # Whitelist allowed domains
+    ALLOWED_PAYMENT_DOMAINS = [
+        "zarinpal.com",
+        "zibal.ir",
+        "localhost",  # For fake gateway in dev
+    ]
+
+    if not any(domain in parsed.netloc for domain in ALLOWED_PAYMENT_DOMAINS):
+        return HttpResponse(_("Invalid payment gateway URL"))
 
     return redirect(redirect_url)
 
@@ -199,16 +223,18 @@ def payment_verify(request, order_id):
             order.reservation_status = Order.ReservationStatus.FAILED
             order.save(update_fields=["payment_status", "reservation_status"])
 
-            # Restore stock immediately on manual cancellation (variant-aware)
-            for item in order.items.all():
-                if item.variant:
-                    ProductVariant.objects.filter(pk=item.variant_id).update(
-                        stock=F("stock") + item.quantity
-                    )
-                else:
-                    Product.objects.filter(pk=item.product_id).update(
-                        stock=F("stock") + item.quantity
-                    )
+            # Only restore if not already restored
+            if order.reservation_status == Order.ReservationStatus.RESERVED:
+                # Restore stock immediately on manual cancellation (variant-aware)
+                for item in order.items.all():
+                    if item.variant:
+                        ProductVariant.objects.filter(pk=item.variant_id).update(
+                            stock=F("stock") + item.quantity
+                        )
+                    else:
+                        Product.objects.filter(pk=item.product_id).update(
+                            stock=F("stock") + item.quantity
+                        )
 
             # Update order items status
             order.items.update(status=OrderItem.ItemStatus.CANCELLED)
@@ -241,6 +267,11 @@ def payment_verify(request, order_id):
     # 4. ANTI-TAMPERING
     authority = gateway.get_authority(request)
     if authority != order.payment_authority:
+        logger.critical(
+            f"Payment authority mismatch: order_id={order.id}, "
+            f"expected={order.payment_authority}, received={authority}, "
+            f"ip={request.META.get('REMOTE_ADDR')} - Possible tampering"
+        )
         PaymentLog.objects.create(
             order=order,
             gateway=order.payment_method,
@@ -265,6 +296,11 @@ def payment_verify(request, order_id):
             .exclude(id=order.id)
             .exists()
         ):
+            logger.critical(
+                f"Duplicate payment ref_id detected: ref_id={ref_id}, "
+                f"order_id={order.id}, authority={authority}, "
+                f"ip={request.META.get('REMOTE_ADDR')} - Possible replay attack"
+            )
             PaymentLog.objects.create(
                 order=order,
                 gateway=order.payment_method,
@@ -289,6 +325,16 @@ def payment_verify(request, order_id):
             )
 
         with transaction.atomic():
+            # Atomic test-and-set
+            updated = Order.objects.filter(
+                id=order.id, payment_processing=False
+            ).update(payment_processing=True)
+
+            if updated == 0:
+                # Another request is already processing
+                return HttpResponse(_("Payment already being processed."))
+
+            # Reload order with lock
             order = Order.objects.select_for_update().get(id=order.id)
 
             # prevent double verification
@@ -355,6 +401,11 @@ def payment_verify(request, order_id):
         )
 
     # 7. FAIL CASE - Restore stock
+    logger.warning(
+        f"Payment verification failed: order_id={order.id}, "
+        f"authority={authority}, gateway_error={error}, "
+        f"ip={request.META.get('REMOTE_ADDR')}"
+    )
     with transaction.atomic():
         order.payment_status = Order.PaymentStatus.FAILED
         order.reservation_status = Order.ReservationStatus.FAILED
@@ -363,16 +414,18 @@ def payment_verify(request, order_id):
             update_fields=["payment_status", "reservation_status", "payment_processing"]
         )
 
-        # Restore stock immediately on payment failure (variant-aware)
-        for item in order.items.all():
-            if item.variant:
-                ProductVariant.objects.filter(pk=item.variant_id).update(
-                    stock=F("stock") + item.quantity
-                )
-            else:
-                Product.objects.filter(pk=item.product_id).update(
-                    stock=F("stock") + item.quantity
-                )
+        # Only restore if not already restored
+        if order.reservation_status == Order.ReservationStatus.RESERVED:
+            # Restore stock immediately on payment failure (variant-aware)
+            for item in order.items.all():
+                if item.variant:
+                    ProductVariant.objects.filter(pk=item.variant_id).update(
+                        stock=F("stock") + item.quantity
+                    )
+                else:
+                    Product.objects.filter(pk=item.product_id).update(
+                        stock=F("stock") + item.quantity
+                    )
 
         # Update order items status - changed recently
         order.items.update(status=OrderItem.ItemStatus.CANCELLED)

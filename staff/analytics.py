@@ -6,6 +6,7 @@ from datetime import timedelta, date
 from decimal import Decimal
 
 from orders.models import Order, OrderItem
+from shop.models import Product
 
 
 CACHE_TTL = 60 * 15  # 15 minutes
@@ -238,3 +239,43 @@ def fill_date_gaps(trend: list[dict], start, end) -> list[dict]:
         result.append({"date": str(current), "revenue": by_date.get(str(current), 0.0)})
         current += timedelta(days=1)
     return result
+
+
+def get_low_performing_products(days=30):
+    """
+    Identify products with low sales or views.
+    Returns products sorted by performance score (sales + views).
+    """
+    from django.utils import timezone
+    from datetime import timedelta
+    from django.db.models import Count, Sum, Q
+
+    cutoff = timezone.now() - timedelta(days=days)
+
+    products = (
+        Product.objects.filter(available=True)
+        .annotate(
+            sales_count=Count(
+                "orderitem",
+                filter=Q(
+                    orderitem__order__created__gte=cutoff,
+                    orderitem__order__payment_status=Order.PaymentStatus.SUCCESS,
+                    orderitem__status=OrderItem.ItemStatus.ACTIVE,
+                ),
+            ),
+            revenue=Sum(
+                "orderitem__price" * "orderitem__quantity",
+                filter=Q(
+                    orderitem__order__created__gte=cutoff,
+                    orderitem__order__payment_status=Order.PaymentStatus.SUCCESS,
+                    orderitem__status=OrderItem.ItemStatus.ACTIVE,
+                ),
+            ),
+        )
+        .order_by("sales_count", "revenue")
+    )
+
+    # Filter to only products with low performance
+    low_performers = [p for p in products if (p.sales_count or 0) < 5][:50]
+
+    return low_performers

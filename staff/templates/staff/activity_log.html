@@ -1,0 +1,181 @@
+<!-- staff/templates/staff/activity_log.html -->
+{% extends "staff/base.html" %}
+{% block title %}Activity Log{% endblock %}
+{% block content %}
+<h2 style="margin-bottom:20px;">Staff Activity Log</h2>
+
+<div class="card">
+    <form method="get" class="filters">
+        <div>
+            <input type="text" name="search" placeholder="Search staff or action..."
+                   value="{{ search }}" style="width:250px;">
+        </div>
+
+        <div>
+            <select name="action">
+                <option value="">All Actions</option>
+                {% for action in action_choices %}
+                    <option value="{{ action.0 }}" {% if selected_action == action.0 %}selected{% endif %}>
+                        {{ action.1 }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <input type="date" name="date_from" value="{{ date_from }}">
+        </div>
+
+        <div>
+            <input type="date" name="date_to" value="{{ date_to }}">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+
+        {% if search or selected_action or date_from or date_to %}
+            <a href="{% url 'staff:activity_log' %}"
+               class="btn btn-sm"
+               style="background:#6b7280;color:white;">
+                Clear
+            </a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:14px; color:#666;">
+            Total: {{ page_obj.paginator.count }} activity records
+        </div>
+        <a href="{% url 'staff:activity_log_export' %}?{{ request.GET.urlencode }}"
+           class="btn btn-sm btn-primary">Export CSV</a>
+    </div>
+
+    {% if page_obj %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Staff Member</th>
+                <th>Action</th>
+                <th>Target</th>
+                <th>Description</th>
+                <th>IP Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in page_obj %}
+            <tr>
+                <td>
+                    <div>
+                        <strong>{{ log.timestamp|date:"Y-m-d" }}</strong>
+                    </div>
+                    <div style="font-size:12px; color:#666;">
+                        {{ log.timestamp|date:"H:i:s" }}
+                    </div>
+                </td>
+
+                <td>
+                    <div>
+                        <strong>
+                            {{ log.staff_user.get_full_name|default:log.staff_user.username }}
+                        </strong>
+                    </div>
+                    <div style="font-size:12px; color:#666;">
+                        {{ log.staff_user.email }}
+                    </div>
+                </td>
+
+                <td>
+                    {% if log.action == "order_status_changed" %}
+                        <span class="badge" style="background:#dbeafe;color:#1e40af;">Status Change</span>
+                    {% elif log.action == "shipment_updated" %}
+                        <span class="badge" style="background:#fef3c7;color:#92400e;">Shipment</span>
+                    {% elif log.action == "stock_adjusted" %}
+                        <span class="badge badge-success">Stock</span>
+                    {% elif log.action == "invoice_generated" %}
+                        <span class="badge" style="background:#e0e7ff;color:#3730a3;">Invoice</span>
+                    {% elif log.action == "coupon_created" %}
+                        <span class="badge badge-success">Coupon Created</span>
+                    {% elif log.action == "coupon_updated" %}
+                        <span class="badge" style="background:#dbeafe;color:#1e40af;">Coupon Updated</span>
+                    {% elif log.action == "coupon_deleted" %}
+                        <span class="badge badge-cancelled">Coupon Deleted</span>
+                    {% elif log.action == "data_exported" %}
+                        <span class="badge" style="background:#fef3c7;color:#92400e;">Export</span>
+                    {% elif log.action == "report_viewed" %}
+                        <span class="badge" style="background:#f3e8ff;color:#6b21a8;">Report</span>
+                    {% else %}
+                        <span class="badge" style="background:#e5e7eb;color:#374151;">
+                            {{ log.get_action_display }}
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <div>
+                        <strong>{{ log.target_model|default:"System" }}</strong>
+                    </div>
+                    {% if log.target_id %}
+                    <div style="font-size:12px; color:#666;">
+                        ID: {{ log.target_id }}
+                    </div>
+                    {% endif %}
+                </td>
+
+                <td style="max-width:350px;">
+                    <div style="word-break:break-word;">
+                        {{ log.description }}
+                    </div>
+                </td>
+
+                <td>
+                    {% if log.ip_address %}
+                        <code style="font-size:12px;">{{ log.ip_address }}</code>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1&{{ request.GET.urlencode }}" class="btn btn-sm">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"
+               class="btn btn-sm">
+                Previous
+            </a>
+        {% endif %}
+
+        <span style="color:#666;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}"
+               class="btn btn-sm">
+                Next
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}"
+               class="btn btn-sm">
+                Last
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div style="text-align:center; padding:60px 20px;">
+        <div style="font-size:48px; margin-bottom:16px;">📝</div>
+        <h3 style="margin-bottom:8px;">No Activity Found</h3>
+        <p style="color:#666;">
+            No activity logs match your current filters.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
